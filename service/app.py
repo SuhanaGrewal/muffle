@@ -46,3 +46,9 @@ async def detect(file: UploadFile = File(...)) -> DetectResponse:
         raise HTTPException(status_code=503, detail="model not loaded")
 
     audio_bytes = await file.read()
+    try:
+        result = _engine.predict(audio_bytes)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"could not process audio: {exc}") from exc
+
+    return DetectResponse(**result)
