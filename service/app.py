@@ -28,3 +28,6 @@ async def lifespan(app: FastAPI):
     _engine = InferenceEngine(config_path, checkpoint_path, device=device)
     yield
     _engine = None
+
+
+app = FastAPI(title="muffle", lifespan=lifespan)
