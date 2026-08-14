@@ -42,3 +42,6 @@ def _sine_wav_bytes(seconds=1.0, sample_rate=16_000, freq=220):
 
 def test_health_and_detect_endpoints(tmp_path, monkeypatch):
     config_path, checkpoint_path = _make_tiny_checkpoint(tmp_path)
+    monkeypatch.setenv("MUFFLE_CONFIG", str(config_path))
+    monkeypatch.setenv("MUFFLE_CHECKPOINT", str(checkpoint_path))
+    monkeypatch.setenv("MUFFLE_DEVICE", "cpu")
