@@ -101,6 +101,17 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
                 "split": split_for(i, len(real_files)),
             }
         )
+    for i, path in enumerate(fake_files):
+        rows.append(
+            {
+                "path": str(path),
+                "label": "spoof",
+                "dataset": "deep_voice",
+                "attack_id": "rvc",
+                "speaker_id": path.stem,
+                "split": split_for(i, len(fake_files)),
+            }
+        )
 
 
 _BUILDERS = {
