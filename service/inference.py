@@ -66,3 +66,11 @@ class InferenceEngine:
         bonafide_prob = probs[0].item()
         verdict = "human" if bonafide_prob >= 0.5 else "ai_generated"
         confidence = bonafide_prob if verdict == "human" else 1 - bonafide_prob
+
+        return {
+            "verdict": verdict,
+            "confidence": confidence,
+            "score_raw": score_raw,
+            "model_version": self.model_version,
+            "processing_time_ms": (time.monotonic() - start) * 1000,
+        }
