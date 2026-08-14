@@ -38,3 +38,7 @@ class InferenceEngine:
     @torch.no_grad()
     def predict(self, audio_bytes: bytes) -> dict:
         start = time.monotonic()
+
+        waveform, file_sr = sf.read(io.BytesIO(audio_bytes), dtype="float32", always_2d=False)
+        if waveform.ndim > 1:
+            waveform = waveform.mean(axis=1)
