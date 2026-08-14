@@ -47,3 +47,6 @@ def test_health_and_detect_endpoints(tmp_path, monkeypatch):
     monkeypatch.setenv("MUFFLE_DEVICE", "cpu")
 
     from service.app import app  # imported after env vars are set, before lifespan startup
+
+    with TestClient(app) as client:
+        health_resp = client.get("/health")
