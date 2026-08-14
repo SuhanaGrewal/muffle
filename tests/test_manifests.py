@@ -17,3 +17,8 @@ def test_build_deep_voice_manifest_labels_and_splits(tmp_path):
     assert set(manifest["label"]) == {"bonafide", "spoof"}
     assert (manifest["label"] == "bonafide").sum() == 4
     assert (manifest["label"] == "spoof").sum() == 6
+
+    bonafide_splits = manifest.loc[manifest["label"] == "bonafide", "split"].tolist()
+    assert bonafide_splits.count("eval") == 1
+    assert bonafide_splits.count("dev") == 1
+    assert bonafide_splits.count("train") == 2
