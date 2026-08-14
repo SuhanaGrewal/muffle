@@ -6,3 +6,8 @@ synthesis artifacts are most visible) instead of plain mean-pooling every frame 
 from __future__ import annotations
 
 import torch
+from torch import nn
+
+
+class AttentivePooling(nn.Module):
+    """Learns a per-frame attention weight and returns the weighted mean over time."""
