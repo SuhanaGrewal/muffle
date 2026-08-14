@@ -1,0 +1,129 @@
+# muffle
+
+AI-generated voice (deepfake audio) detection, built to serve as a fraud-prevention
+signal in voice-based KYC (identity verification) flows. Given an audio clip, the
+system classifies it as human speech or AI-generated/synthetic speech (TTS or voice
+clone), trained and evaluated on public anti-spoofing datasets.
+
+## Status
+
+Research/prototype project. Not production-hardened. Local-only training on CPU/MPS
+(Apple Silicon, no CUDA) — architecture and dataset choices are sized to fit that.
+
+## Why this is hard
+
+The core difficulty isn't classifying attacks you trained on — it's generalizing to
+voice-generation systems you *didn't* train on. A detector trained only on one
+TTS/vocoder family (e.g. ASVspoof's 2019 attacks) commonly fails against unrelated
+generators or against a system released after training data was collected. This
+project's evaluation protocol is built around measuring that gap explicitly
+(cross-dataset generalization), not just reporting in-domain accuracy.
+
+## Datasets
+
+| Dataset | Role | License |
+|---|---|---|
+| ASVspoof2019 LA | Primary training set | Open Data Commons Attribution (free, no gate) |
+| ASVspoof2021 DF | Cross-dataset generalization test (codec-compressed, closer to phone audio) | Zenodo, free registration |
+| WaveFake | Cross-dataset generalization test (different vocoder family) | CC-BY-SA 4.0 |
+| In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | Verify license before any commercial use |
+
+**MLAAD is deliberately excluded** (CC-BY-NC 4.0, non-commercial) — not used here even
+though this is a research project, to avoid any future re-licensing risk.
+
+ASVspoof5 and FakeAVCeleb were considered but not included in this phase (gated/unclear
+access terms) — worth revisiting if the project needs multilingual or audio-visual
+coverage later.
+
+Datasets are downloaded on demand (see `scripts/`) and are gitignored — only
+ASVspoof2019 LA (~7GB) is required for Phase 1.
+
+## Architecture
+
+- **Phase 1 baseline:** LFCC/CQT hand-crafted features + a small CNN. Cheap to train
+  locally, validates the full pipeline end-to-end.
+- **Phase 2:** a frozen pretrained SSL model (wav2vec2 or WavLM) as a feature
+  extractor, feeding a small trainable attentive-pooling + MLP head. The SSL backbone
+  is *frozen*, not fine-tuned — full fine-tuning needs GPU budget this project doesn't
+  assume. Frozen-SSL-features is the practical lever for cross-dataset generalization
+  without that compute.
+- **Stretch goal, not built:** AASIST / RawNet2, the dedicated raw-waveform anti-
+  spoofing architecture, as a from-repo reference implementation, if compute allows
+  later (see `clovaai/aasist`).
+
+## Project layout
+
+```
+src/muffle/
+├── data/          # download, manifest-building, torch Dataset classes
+├── features/      # LFCC/CQT and SSL feature extraction
+├── models/        # CNN baseline, SSL+head model
+├── train.py       # training entrypoint
+├── evaluate.py    # EER / min t-DCF / cross-dataset eval reporting
+└── metrics.py     # EER / min t-DCF, ported from the official ASVspoof eval kit
+service/           # FastAPI inference API (POST /detect, GET /health)
+configs/           # per-model training configs (yaml)
+scripts/           # dataset download scripts, eval-runner scripts
+```
+
+## Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+## Usage
+
+```bash
+# 1. Download ASVspoof2019 LA (see scripts/download_asvspoof2019.sh for manual steps —
+#    the official host requires a click-through, not a scriptable download)
+bash scripts/download_asvspoof2019.sh
+
+# 2. Build manifests from the downloaded protocol files
+python -m muffle.data.manifests --dataset asvspoof2019_la
+
+# 3. Train the Phase 1 baseline
+python -m muffle.train --config configs/baseline_lfcc_cnn.yaml
+
+# 4. Evaluate (EER / min t-DCF)
+python -m muffle.evaluate --config configs/baseline_lfcc_cnn.yaml --checkpoint checkpoints/baseline_lfcc_cnn/best.pt
+
+# 5. Run the inference API
+uvicorn service.app:app --reload
+curl -F file=@sample.wav http://localhost:8000/detect
+```
+
+## Evaluation methodology
+
+- **EER** (equal error rate): the threshold at which false-accept rate equals
+  false-reject rate. Primary headline metric.
+- **min t-DCF**: ASVspoof's application-weighted metric that accounts for a
+  downstream speaker-verification system's errors alongside the countermeasure's own
+  errors. Implemented in `src/muffle/metrics.py`, ported and unit-tested against the
+  official reference implementation's known values — not reimplemented from scratch.
+- **Cross-dataset generalization**: train on ASVspoof2019 LA, evaluate (no fine-tuning)
+  on ASVspoof2021 DF, WaveFake, and In-the-Wild. This is the headline result — it
+  indicates whether the detector generalizes or just memorized ASVspoof-specific
+  artifacts.
+- **Telephony realism**: re-run evaluation after simulating phone codecs (G.711/AMR,
+  8kHz downsampling) on the audio, since training data is studio-quality but the real
+  KYC use case is phone audio.
+
+## Known limitations / future work
+
+- **Streaming/real-time detection is not built.** This system analyzes a
+  recorded/uploaded clip, not a live call. Moving to real-time would require:
+  a fixed-size sliding-window chunking strategy (e.g. 1-2s windows with overlap)
+  instead of whole-clip analysis, a sub-second per-chunk latency budget (which likely
+  rules out the frozen-SSL model in favor of the lighter CNN or a distilled model),
+  a websocket/gRPC streaming endpoint instead of file upload, and incremental
+  score smoothing across chunks to avoid flip-flopping verdicts.
+- **New TTS/voice-cloning systems keep emerging.** A static training snapshot degrades
+  over time. Any real deployment should periodically re-evaluate against freshly
+  generated audio from current voice-generation systems not present in training data,
+  as an ongoing practice rather than a one-time task.
+- **License re-audit needed before any commercial use.** Dataset licenses here were
+  chosen to be safe for a research prototype; re-verify every dataset's actual terms
+  (and any pretrained checkpoint's license) before using this in a commercial product.
