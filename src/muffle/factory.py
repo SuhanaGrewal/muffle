@@ -33,3 +33,9 @@ def build_feature_extractor(cfg: dict):
 
 def build_model(cfg: dict):
     model_type = cfg["model_type"]
+
+    if model_type == "cnn_baseline":
+        return SpoofCNN(
+            n_feat=cfg["features"]["n_lfcc"] * 3,
+            hidden_channels=tuple(cfg["model"]["hidden_channels"]),
+        )
