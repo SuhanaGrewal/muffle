@@ -61,3 +61,8 @@ class InferenceEngine:
         # window doesn't flip the verdict on an otherwise-confident long clip.
         mean_logits = logits.mean(dim=0)
         score_raw = (mean_logits[0] - mean_logits[1]).item()
+
+        probs = torch.softmax(mean_logits, dim=0)
+        bonafide_prob = probs[0].item()
+        verdict = "human" if bonafide_prob >= 0.5 else "ai_generated"
+        confidence = bonafide_prob if verdict == "human" else 1 - bonafide_prob
