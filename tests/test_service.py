@@ -45,3 +45,5 @@ def test_health_and_detect_endpoints(tmp_path, monkeypatch):
     monkeypatch.setenv("MUFFLE_CONFIG", str(config_path))
     monkeypatch.setenv("MUFFLE_CHECKPOINT", str(checkpoint_path))
     monkeypatch.setenv("MUFFLE_DEVICE", "cpu")
+
+    from service.app import app  # imported after env vars are set, before lifespan startup
