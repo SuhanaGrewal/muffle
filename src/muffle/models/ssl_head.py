@@ -20,3 +20,9 @@ class AttentivePooling(nn.Module):
         """hidden_states: (batch, time, hidden_size) -> pooled: (batch, hidden_size)."""
         weights = torch.softmax(self.attn(hidden_states), dim=1)  # (batch, time, 1)
         return (hidden_states * weights).sum(dim=1)
+
+
+class SSLHeadClassifier(nn.Module):
+    """Input: (batch, time, hidden_size) frozen SSL hidden states.
+    Output: (batch, 2) logits -- index 0 = bonafide, index 1 = spoof.
+    """
