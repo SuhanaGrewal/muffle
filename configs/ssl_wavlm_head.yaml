@@ -23,3 +23,6 @@ train:
   lr: 0.0003
   weight_decay: 0.00001
   class_weights: [9.0, 1.0]  # [bonafide, spoof], same rationale as the baseline config
+  device: auto
+  checkpoint_dir: checkpoints/ssl_wavlm_head
+  seed: 0
