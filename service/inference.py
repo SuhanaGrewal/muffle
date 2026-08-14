@@ -17,3 +17,7 @@ from muffle.factory import build_feature_extractor, build_model
 
 class InferenceEngine:
     """Owns one loaded model + extractor; construct once at app startup."""
+
+    def __init__(self, config_path: str | Path, checkpoint_path: str | Path, device: str = "cpu"):
+        cfg = yaml.safe_load(Path(config_path).read_text())
+        self.device = torch.device(device)
