@@ -1,0 +1,28 @@
+model_name: baseline_lfcc_cnn
+
+data:
+  manifest_path: data/processed/asvspoof2019_la_manifest.csv
+  sample_rate: 16000
+  duration_seconds: 4.0
+
+features:
+  n_lfcc: 60
+  n_filter: 128
+  win_length_ms: 20.0
+  hop_length_ms: 10.0
+
+model:
+  hidden_channels: [16, 32, 64]
+
+train:
+  batch_size: 32
+  num_workers: 4
+  epochs: 20
+  lr: 0.0003
+  weight_decay: 0.00001
+  # ASVspoof LA train split is heavily spoof-skewed; weight the loss so bonafide errors
+  # aren't drowned out.
+  class_weights: [9.0, 1.0]  # [bonafide, spoof]
+  device: auto  # auto -> mps if available, else cpu
+  checkpoint_dir: checkpoints/baseline_lfcc_cnn
+  seed: 0
