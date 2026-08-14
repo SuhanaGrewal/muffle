@@ -19,3 +19,12 @@ def test_attentive_pooling_weights_sum_to_one_per_frame_axis():
     weights = torch.softmax(pooling.attn(hidden_states), dim=1)
 
     assert torch.allclose(weights.sum(dim=1), torch.ones(2, 1), atol=1e-6)
+
+
+def test_ssl_head_classifier_output_shape():
+    model = SSLHeadClassifier(hidden_size=32, mlp_hidden=16)
+    hidden_states = torch.randn(3, 20, 32)
+
+    logits = model(hidden_states)
+
+    assert logits.shape == (3, 2)
