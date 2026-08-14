@@ -35,3 +35,8 @@ class SSLHeadClassifier(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout),
         )
+        self.classifier = nn.Linear(mlp_hidden, 2)
+
+    def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        pooled = self.pooling(hidden_states)
+        return self.classifier(self.mlp(pooled))
