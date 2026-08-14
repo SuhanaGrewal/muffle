@@ -76,6 +76,12 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
     real_files = sorted((dataset_root / "REAL").glob("*.wav"))
     fake_files = sorted((dataset_root / "FAKE").glob("*.wav"))
 
+    if not real_files or not fake_files:
+        raise FileNotFoundError(
+            f"Expected {dataset_root}/REAL/*.wav and {dataset_root}/FAKE/*.wav -- "
+            "run scripts/download_deep_voice.sh and check the extracted layout."
+        )
+
 
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
