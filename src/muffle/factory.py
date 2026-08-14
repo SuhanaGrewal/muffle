@@ -3,3 +3,8 @@ evaluate.py don't need to know which Phase's architecture they're running.
 """
 
 from __future__ import annotations
+
+from muffle.features.lfcc import LFCCExtractor
+from muffle.features.ssl_features import SSLFeatureExtractor
+from muffle.models.cnn_baseline import SpoofCNN
+from muffle.models.ssl_head import SSLHeadClassifier
