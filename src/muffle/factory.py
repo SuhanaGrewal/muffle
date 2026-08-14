@@ -8,3 +8,7 @@ from muffle.features.lfcc import LFCCExtractor
 from muffle.features.ssl_features import SSLFeatureExtractor
 from muffle.models.cnn_baseline import SpoofCNN
 from muffle.models.ssl_head import SSLHeadClassifier
+
+
+def build_feature_extractor(cfg: dict):
+    model_type = cfg["model_type"]
