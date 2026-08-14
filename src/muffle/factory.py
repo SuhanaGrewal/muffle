@@ -29,3 +29,7 @@ def build_feature_extractor(cfg: dict):
         )
 
     raise ValueError(f"Unknown model_type: {model_type!r}")
+
+
+def build_model(cfg: dict):
+    model_type = cfg["model_type"]
