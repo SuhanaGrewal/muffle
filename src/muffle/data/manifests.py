@@ -82,6 +82,13 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
             "run scripts/download_deep_voice.sh and check the extracted layout."
         )
 
+    def split_for(index: int, count: int) -> str:
+        if index == count - 1:
+            return "eval"
+        if index == count - 2:
+            return "dev"
+        return "train"
+
 
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
