@@ -50,3 +50,5 @@ def test_health_and_detect_endpoints(tmp_path, monkeypatch):
 
     with TestClient(app) as client:
         health_resp = client.get("/health")
+        assert health_resp.status_code == 200
+        assert health_resp.json()["status"] == "ok"
