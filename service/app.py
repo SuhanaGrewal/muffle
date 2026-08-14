@@ -44,3 +44,5 @@ def health() -> HealthResponse:
 async def detect(file: UploadFile = File(...)) -> DetectResponse:
     if _engine is None:
         raise HTTPException(status_code=503, detail="model not loaded")
+
+    audio_bytes = await file.read()
