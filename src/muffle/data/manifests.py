@@ -66,8 +66,19 @@ def build_asvspoof2019_la_manifest(dataset_root: Path) -> pd.DataFrame:
     return manifest
 
 
+def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
+    """DEEP-VOICE has no official splits and only 64 files total (8 real, 56 RVC fakes) --
+    too few files, and too speaker-imbalanced, for a speaker-disjoint split to mean much.
+    Uses a naive deterministic split (last file per class -> eval, second-to-last -> dev,
+    rest -> train) since this dataset's role is a cheap real-audio sanity check, not the
+    statistically rigorous training run.
+    """
+    return dataset_root  # placeholder, filled in next commit
+
+
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
+    "deep_voice": build_deep_voice_manifest,
 }
 
 
