@@ -73,7 +73,8 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
     rest -> train) since this dataset's role is a cheap real-audio sanity check, not the
     statistically rigorous training run.
     """
-    return dataset_root  # placeholder, filled in next commit
+    real_files = sorted((dataset_root / "REAL").glob("*.wav"))
+    fake_files = sorted((dataset_root / "FAKE").glob("*.wav"))
 
 
 _BUILDERS = {
