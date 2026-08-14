@@ -24,3 +24,7 @@ async def lifespan(app: FastAPI):
         "MUFFLE_CHECKPOINT", "checkpoints/baseline_lfcc_cnn/best.pt"
     )
     device = os.environ.get("MUFFLE_DEVICE", "cpu")
+
+    _engine = InferenceEngine(config_path, checkpoint_path, device=device)
+    yield
+    _engine = None
