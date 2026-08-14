@@ -10,3 +10,6 @@ import numpy as np
 import soundfile as sf
 import torch
 import yaml
+
+from muffle.data.datasets import _resample
+from muffle.factory import build_feature_extractor, build_model
