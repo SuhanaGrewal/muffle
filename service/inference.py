@@ -25,3 +25,8 @@ class InferenceEngine:
         self.extractor = build_feature_extractor(cfg)
         if hasattr(self.extractor, "to"):
             self.extractor = self.extractor.to(self.device)
+
+        self.model = build_model(cfg).to(self.device)
+        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        self.model.load_state_dict(checkpoint["model_state"])
+        self.model.eval()
