@@ -15,3 +15,8 @@ model:
   ssl_hidden_size: 768  # must match the SSL backbone's hidden size
   mlp_hidden: 128
   dropout: 0.1
+
+train:
+  batch_size: 8  # SSL forward passes are far heavier than LFCC; smaller batch than baseline
+  num_workers: 4
+  epochs: 15
