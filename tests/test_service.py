@@ -20,3 +20,6 @@ def _make_tiny_checkpoint(tmp_path, sample_rate=16_000, duration_seconds=1.0):
         "features": {"n_lfcc": 20, "n_filter": 40, "win_length_ms": 20.0, "hop_length_ms": 10.0},
         "model": {"hidden_channels": [8, 16]},
     }
+
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(yaml.dump(cfg))
