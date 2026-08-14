@@ -28,3 +28,9 @@ class SSLFeatureExtractor:
             return_tensors="pt",
             padding=True,
         )
+        outputs = self.model(inputs["input_values"].to(device))
+        return outputs.last_hidden_state
+
+    def to(self, device: torch.device) -> "SSLFeatureExtractor":
+        self.model.to(device)
+        return self
