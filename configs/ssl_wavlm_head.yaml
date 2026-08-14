@@ -10,3 +10,8 @@ features:
   # base-plus (not large) to stay realistic on local CPU/MPS -- see README for the
   # large-model tradeoff if cloud compute becomes available later.
   ssl_model_name: microsoft/wavlm-base-plus
+
+model:
+  ssl_hidden_size: 768  # must match the SSL backbone's hidden size
+  mlp_hidden: 128
+  dropout: 0.1
