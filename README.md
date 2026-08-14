@@ -42,11 +42,13 @@ ASVspoof2019 LA (~7GB) is required for Phase 1.
 
 - **Phase 1 baseline:** LFCC/CQT hand-crafted features + a small CNN. Cheap to train
   locally, validates the full pipeline end-to-end.
-- **Phase 2:** a frozen pretrained SSL model (wav2vec2 or WavLM) as a feature
-  extractor, feeding a small trainable attentive-pooling + MLP head. The SSL backbone
-  is *frozen*, not fine-tuned — full fine-tuning needs GPU budget this project doesn't
-  assume. Frozen-SSL-features is the practical lever for cross-dataset generalization
-  without that compute.
+- **Phase 2 (implemented):** a frozen pretrained SSL model (`microsoft/wavlm-base-plus`
+  by default) as a feature extractor, feeding a small trainable attentive-pooling + MLP
+  head (`src/muffle/models/ssl_head.py`). The SSL backbone is *frozen*, not fine-tuned —
+  full fine-tuning needs GPU budget this project doesn't assume. Frozen-SSL-features is
+  the practical lever for cross-dataset generalization without that compute.
+  `src/muffle/factory.py` dispatches on each config's `model_type` (`cnn_baseline` or
+  `ssl_head`) so `train.py`/`evaluate.py` are architecture-agnostic.
 - **Stretch goal, not built:** AASIST / RawNet2, the dedicated raw-waveform anti-
   spoofing architecture, as a from-repo reference implementation, if compute allows
   later (see `clovaai/aasist`).
