@@ -21,3 +21,7 @@ class InferenceEngine:
     def __init__(self, config_path: str | Path, checkpoint_path: str | Path, device: str = "cpu"):
         cfg = yaml.safe_load(Path(config_path).read_text())
         self.device = torch.device(device)
+
+        self.extractor = build_feature_extractor(cfg)
+        if hasattr(self.extractor, "to"):
+            self.extractor = self.extractor.to(self.device)
