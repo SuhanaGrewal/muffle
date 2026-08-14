@@ -12,3 +12,12 @@ from muffle.models.ssl_head import SSLHeadClassifier
 
 def build_feature_extractor(cfg: dict):
     model_type = cfg["model_type"]
+
+    if model_type == "cnn_baseline":
+        return LFCCExtractor(
+            sample_rate=cfg["data"]["sample_rate"],
+            n_lfcc=cfg["features"]["n_lfcc"],
+            n_filter=cfg["features"]["n_filter"],
+            win_length_ms=cfg["features"]["win_length_ms"],
+            hop_length_ms=cfg["features"]["hop_length_ms"],
+        )
