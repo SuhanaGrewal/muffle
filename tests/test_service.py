@@ -23,3 +23,9 @@ def _make_tiny_checkpoint(tmp_path, sample_rate=16_000, duration_seconds=1.0):
 
     config_path = tmp_path / "config.yaml"
     config_path.write_text(yaml.dump(cfg))
+
+    checkpoint_path = tmp_path / "checkpoint.pt"
+    model = build_model(cfg)
+    torch.save({"model_state": model.state_dict()}, checkpoint_path)
+
+    return config_path, checkpoint_path
