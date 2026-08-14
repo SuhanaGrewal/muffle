@@ -94,7 +94,12 @@ python -m muffle.train --config configs/baseline_lfcc_cnn.yaml
 # 4. Evaluate (EER / min t-DCF)
 python -m muffle.evaluate --config configs/baseline_lfcc_cnn.yaml --checkpoint checkpoints/baseline_lfcc_cnn/best.pt
 
-# 5. Run the inference API
+# 5. Or train the Phase 2 SSL-head model instead
+python -m muffle.train --config configs/ssl_wavlm_head.yaml
+
+# 6. Run the inference API (env vars pick which trained checkpoint to serve)
+MUFFLE_CONFIG=configs/baseline_lfcc_cnn.yaml \
+MUFFLE_CHECKPOINT=checkpoints/baseline_lfcc_cnn/best.pt \
 uvicorn service.app:app --reload
 curl -F file=@sample.wav http://localhost:8000/detect
 ```
