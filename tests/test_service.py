@@ -38,3 +38,7 @@ def _sine_wav_bytes(seconds=1.0, sample_rate=16_000, freq=220):
     sf.write(buf, audio, sample_rate, format="WAV")
     buf.seek(0)
     return buf
+
+
+def test_health_and_detect_endpoints(tmp_path, monkeypatch):
+    config_path, checkpoint_path = _make_tiny_checkpoint(tmp_path)
