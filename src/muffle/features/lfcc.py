@@ -40,3 +40,10 @@ class LFCCExtractor:
         delta2 = torchaudio.functional.compute_deltas(delta)
 
         return torch.cat([static, delta, delta2], dim=1)  # (batch, 3*n_lfcc, time)
+
+    def to(self, device: torch.device) -> "LFCCExtractor":
+        # torchaudio's LFCC is an nn.Module (registers a window/DCT matrix as buffers) --
+        # without this, its buffers stay on CPU while input waveforms move to MPS/CUDA,
+        # and torch.stft errors on the device mismatch.
+        self._lfcc = self._lfcc.to(device)
+        return self
