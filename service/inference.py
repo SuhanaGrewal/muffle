@@ -47,3 +47,8 @@ class InferenceEngine:
 
         window_len = int(self.sample_rate * self.window_seconds)
         n_windows = max(1, -(-len(waveform) // window_len))  # ceil division
+
+        padded_len = n_windows * window_len
+        n_repeats = padded_len // len(waveform) + 1
+        padded = np.tile(waveform, n_repeats)[:padded_len]
+        windows = padded.reshape(n_windows, window_len)
