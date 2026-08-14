@@ -58,12 +58,14 @@ ASVspoof2019 LA (~7GB) is required for Phase 1.
 ```
 src/muffle/
 ├── data/          # download, manifest-building, torch Dataset classes
-├── features/      # LFCC/CQT and SSL feature extraction
+├── features/      # LFCC/CQT and SSL (wav2vec2/WavLM) feature extraction
 ├── models/        # CNN baseline, SSL+head model
+├── factory.py     # builds extractor+model from a config's model_type
 ├── train.py       # training entrypoint
 ├── evaluate.py    # EER / min t-DCF / cross-dataset eval reporting
 └── metrics.py     # EER / min t-DCF, ported from the official ASVspoof eval kit
-service/           # FastAPI inference API (POST /detect, GET /health)
+service/           # FastAPI inference API: app.py (POST /detect, GET /health),
+                    # inference.py (model loading + preprocessing), schemas.py
 configs/           # per-model training configs (yaml)
 scripts/           # dataset download scripts, eval-runner scripts
 ```
