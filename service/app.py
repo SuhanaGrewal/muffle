@@ -31,3 +31,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="muffle", lifespan=lifespan)
+
+
+@app.get("/health", response_model=HealthResponse)
+def health() -> HealthResponse:
+    if _engine is None:
+        raise HTTPException(status_code=503, detail="model not loaded")
+    return HealthResponse(status="ok", model_version=_engine.model_version)
