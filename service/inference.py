@@ -34,3 +34,7 @@ class InferenceEngine:
         self.sample_rate = cfg["data"]["sample_rate"]
         self.window_seconds = cfg["data"]["duration_seconds"]
         self.model_version = cfg["model_name"]
+
+    @torch.no_grad()
+    def predict(self, audio_bytes: bytes) -> dict:
+        start = time.monotonic()
