@@ -50,8 +50,25 @@ def verify_asvspoof2019_la(dataset_root: Path) -> list[str]:
     return problems
 
 
+def verify_deep_voice(dataset_root: Path) -> list[str]:
+    """Return a list of problems found (empty list == looks good)."""
+    problems = []
+    for subdir, min_count in (("REAL", 4), ("FAKE", 30)):
+        audio_dir = dataset_root / subdir
+        if not audio_dir.is_dir():
+            problems.append(f"missing audio directory: {subdir}")
+            continue
+        n_files = sum(1 for _ in audio_dir.glob("*.wav"))
+        if n_files < min_count:
+            problems.append(
+                f"{subdir} has only {n_files} .wav files, expected at least ~{min_count}"
+            )
+    return problems
+
+
 _VERIFIERS = {
     "asvspoof2019_la": verify_asvspoof2019_la,
+    "deep_voice": verify_deep_voice,
 }
 
 
