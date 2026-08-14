@@ -30,3 +30,7 @@ class InferenceEngine:
         checkpoint = torch.load(checkpoint_path, map_location=self.device)
         self.model.load_state_dict(checkpoint["model_state"])
         self.model.eval()
+
+        self.sample_rate = cfg["data"]["sample_rate"]
+        self.window_seconds = cfg["data"]["duration_seconds"]
+        self.model_version = cfg["model_name"]
