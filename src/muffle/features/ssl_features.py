@@ -12,3 +12,6 @@ from transformers import AutoFeatureExtractor, AutoModel
 class SSLFeatureExtractor:
     def __init__(self, model_name: str = "microsoft/wavlm-base-plus", sample_rate: int = 16_000):
         self.sample_rate = sample_rate
+        self.processor = AutoFeatureExtractor.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+        self.model.eval()
