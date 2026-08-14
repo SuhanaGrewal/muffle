@@ -6,3 +6,9 @@ head is trained on top of its frozen hidden states.
 from __future__ import annotations
 
 import torch
+from transformers import AutoFeatureExtractor, AutoModel
+
+
+class SSLFeatureExtractor:
+    def __init__(self, model_name: str = "microsoft/wavlm-base-plus", sample_rate: int = 16_000):
+        self.sample_rate = sample_rate
