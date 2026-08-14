@@ -1,0 +1,15 @@
+data/raw/
+data/processed/
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+wandb/
+.DS_Store
