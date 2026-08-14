@@ -52,3 +52,7 @@ class InferenceEngine:
         n_repeats = padded_len // len(waveform) + 1
         padded = np.tile(waveform, n_repeats)[:padded_len]
         windows = padded.reshape(n_windows, window_len)
+
+        batch = torch.from_numpy(windows.copy()).to(self.device)
+        features = self.extractor(batch)
+        logits = self.model(features)  # (n_windows, 2)
