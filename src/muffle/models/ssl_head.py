@@ -11,3 +11,7 @@ from torch import nn
 
 class AttentivePooling(nn.Module):
     """Learns a per-frame attention weight and returns the weighted mean over time."""
+
+    def __init__(self, hidden_size: int):
+        super().__init__()
+        self.attn = nn.Linear(hidden_size, 1)
