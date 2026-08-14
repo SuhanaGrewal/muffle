@@ -57,3 +57,9 @@ def test_health_and_detect_endpoints(tmp_path, monkeypatch):
         detect_resp = client.post(
             "/detect", files={"file": ("clip.wav", wav_buf, "audio/wav")}
         )
+
+        assert detect_resp.status_code == 200
+        body = detect_resp.json()
+        assert body["verdict"] in ("human", "ai_generated")
+        assert 0.0 <= body["confidence"] <= 1.0
+        assert body["model_version"] == "test_tiny_cnn"
