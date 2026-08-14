@@ -30,3 +30,8 @@ class SSLHeadClassifier(nn.Module):
     def __init__(self, hidden_size: int = 768, mlp_hidden: int = 128, dropout: float = 0.1):
         super().__init__()
         self.pooling = AttentivePooling(hidden_size)
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_size, mlp_hidden),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+        )
