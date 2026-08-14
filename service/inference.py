@@ -44,3 +44,6 @@ class InferenceEngine:
             waveform = waveform.mean(axis=1)
         if file_sr != self.sample_rate:
             waveform = _resample(waveform, file_sr, self.sample_rate)
+
+        window_len = int(self.sample_rate * self.window_seconds)
+        n_windows = max(1, -(-len(waveform) // window_len))  # ceil division
