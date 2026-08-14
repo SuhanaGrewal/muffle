@@ -90,11 +90,16 @@ pip install -e ".[dev]"
 ## Usage
 
 ```bash
-# 1. Download ASVspoof2019 LA (see scripts/download_asvspoof2019.sh for manual steps —
-#    the official host requires a click-through, not a scriptable download)
-bash scripts/download_asvspoof2019.sh
+# 1. Download DEEP-VOICE (see scripts/download_deep_voice.sh -- needs a free Kaggle
+#    account + API token, or a manual download from the Kaggle page)
+bash scripts/download_deep_voice.sh
 
-# 2. Build manifests from the downloaded protocol files
+# 2. Build the manifest from the downloaded REAL/FAKE folders
+python -m muffle.data.manifests --dataset deep_voice
+
+# 2b. Optional: also set up ASVspoof2019 LA as a cross-accent generalization benchmark
+#     (see scripts/download_asvspoof2019.sh -- separate manual click-through download)
+bash scripts/download_asvspoof2019.sh
 python -m muffle.data.manifests --dataset asvspoof2019_la
 
 # 3. Train the Phase 1 baseline
