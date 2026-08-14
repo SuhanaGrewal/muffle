@@ -42,3 +42,5 @@ class InferenceEngine:
         waveform, file_sr = sf.read(io.BytesIO(audio_bytes), dtype="float32", always_2d=False)
         if waveform.ndim > 1:
             waveform = waveform.mean(axis=1)
+        if file_sr != self.sample_rate:
+            waveform = _resample(waveform, file_sr, self.sample_rate)
