@@ -73,12 +73,12 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
     rest -> train) since this dataset's role is a cheap real-audio sanity check, not the
     statistically rigorous training run.
     """
-    real_files = sorted((dataset_root / "REAL").glob("*.wav"))
-    fake_files = sorted((dataset_root / "FAKE").glob("*.wav"))
+    real_files = sorted((dataset_root / "KAGGLE" / "AUDIO" / "REAL").glob("*.wav"))
+    fake_files = sorted((dataset_root / "KAGGLE" / "AUDIO" / "FAKE").glob("*.wav"))
 
     if not real_files or not fake_files:
         raise FileNotFoundError(
-            f"Expected {dataset_root}/REAL/*.wav and {dataset_root}/FAKE/*.wav -- "
+            f"Expected {dataset_root}/KAGGLE/AUDIO/REAL/*.wav and .../FAKE/*.wav -- "
             "run scripts/download_deep_voice.sh and check the extracted layout."
         )
 
