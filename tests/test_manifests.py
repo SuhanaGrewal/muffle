@@ -8,8 +8,8 @@ def _touch_wavs(directory, names):
 
 
 def test_build_deep_voice_manifest_labels_and_splits(tmp_path):
-    _touch_wavs(tmp_path / "REAL", [f"real_{i}.wav" for i in range(4)])
-    _touch_wavs(tmp_path / "FAKE", [f"fake_{i}.wav" for i in range(6)])
+    _touch_wavs(tmp_path / "KAGGLE" / "AUDIO" / "REAL", [f"real_{i}.wav" for i in range(4)])
+    _touch_wavs(tmp_path / "KAGGLE" / "AUDIO" / "FAKE", [f"fake_{i}.wav" for i in range(6)])
 
     manifest = build_deep_voice_manifest(tmp_path)
 
