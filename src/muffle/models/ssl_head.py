@@ -15,3 +15,8 @@ class AttentivePooling(nn.Module):
     def __init__(self, hidden_size: int):
         super().__init__()
         self.attn = nn.Linear(hidden_size, 1)
+
+    def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        """hidden_states: (batch, time, hidden_size) -> pooled: (batch, hidden_size)."""
+        weights = torch.softmax(self.attn(hidden_states), dim=1)  # (batch, time, 1)
+        return (hidden_states * weights).sum(dim=1)
