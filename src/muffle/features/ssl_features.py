@@ -15,3 +15,5 @@ class SSLFeatureExtractor:
         self.processor = AutoFeatureExtractor.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
         self.model.eval()
+        for param in self.model.parameters():
+            param.requires_grad = False
