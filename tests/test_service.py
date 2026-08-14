@@ -29,3 +29,12 @@ def _make_tiny_checkpoint(tmp_path, sample_rate=16_000, duration_seconds=1.0):
     torch.save({"model_state": model.state_dict()}, checkpoint_path)
 
     return config_path, checkpoint_path
+
+
+def _sine_wav_bytes(seconds=1.0, sample_rate=16_000, freq=220):
+    t = np.linspace(0, seconds, int(sample_rate * seconds), endpoint=False)
+    audio = (0.1 * np.sin(2 * np.pi * freq * t)).astype(np.float32)
+    buf = io.BytesIO()
+    sf.write(buf, audio, sample_rate, format="WAV")
+    buf.seek(0)
+    return buf
