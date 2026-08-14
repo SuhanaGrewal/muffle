@@ -13,3 +13,8 @@ class DetectResponse(BaseModel):
     score_raw: float
     model_version: str
     processing_time_ms: float
+
+
+class HealthResponse(BaseModel):
+    status: Literal["ok"]
+    model_version: str
