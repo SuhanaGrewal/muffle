@@ -15,9 +15,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from muffle.data.datasets import AudioManifestDataset, collate_batch
-from muffle.features.lfcc import LFCCExtractor
+from muffle.factory import build_feature_extractor, build_model
 from muffle.metrics import compute_eer
-from muffle.models.cnn_baseline import SpoofCNN
 
 
 def resolve_device(requested: str) -> torch.device:
