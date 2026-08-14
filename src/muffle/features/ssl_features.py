@@ -22,3 +22,9 @@ class SSLFeatureExtractor:
     def __call__(self, waveform: torch.Tensor) -> torch.Tensor:
         """waveform: (batch, samples) -> hidden states: (batch, time, hidden_size)."""
         device = next(self.model.parameters()).device
+        inputs = self.processor(
+            [w.cpu().numpy() for w in waveform],
+            sampling_rate=self.sample_rate,
+            return_tensors="pt",
+            padding=True,
+        )
