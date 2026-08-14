@@ -113,6 +113,8 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
             }
         )
 
+    return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+
 
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
