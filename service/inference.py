@@ -56,3 +56,8 @@ class InferenceEngine:
         batch = torch.from_numpy(windows.copy()).to(self.device)
         features = self.extractor(batch)
         logits = self.model(features)  # (n_windows, 2)
+
+        # Mean-pool per-window scores rather than per-window votes, so one ambiguous
+        # window doesn't flip the verdict on an otherwise-confident long clip.
+        mean_logits = logits.mean(dim=0)
+        score_raw = (mean_logits[0] - mean_logits[1]).item()
