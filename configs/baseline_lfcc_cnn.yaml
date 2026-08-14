@@ -1,4 +1,5 @@
 model_name: baseline_lfcc_cnn
+model_type: cnn_baseline
 
 data:
   manifest_path: data/processed/asvspoof2019_la_manifest.csv
