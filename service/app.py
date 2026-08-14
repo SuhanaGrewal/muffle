@@ -14,3 +14,8 @@ from service.inference import InferenceEngine
 from service.schemas import DetectResponse, HealthResponse
 
 _engine: InferenceEngine | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _engine
