@@ -39,3 +39,12 @@ def build_model(cfg: dict):
             n_feat=cfg["features"]["n_lfcc"] * 3,
             hidden_channels=tuple(cfg["model"]["hidden_channels"]),
         )
+
+    if model_type == "ssl_head":
+        return SSLHeadClassifier(
+            hidden_size=cfg["model"]["ssl_hidden_size"],
+            mlp_hidden=cfg["model"]["mlp_hidden"],
+            dropout=cfg["model"].get("dropout", 0.1),
+        )
+
+    raise ValueError(f"Unknown model_type: {model_type!r}")
