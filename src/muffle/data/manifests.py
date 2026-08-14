@@ -89,6 +89,19 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
             return "dev"
         return "train"
 
+    rows = []
+    for i, path in enumerate(real_files):
+        rows.append(
+            {
+                "path": str(path),
+                "label": "bonafide",
+                "dataset": "deep_voice",
+                "attack_id": None,
+                "speaker_id": path.stem,
+                "split": split_for(i, len(real_files)),
+            }
+        )
+
 
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
