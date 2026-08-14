@@ -1,0 +1,7 @@
+model_name: ssl_wavlm_head
+model_type: ssl_head
+
+data:
+  manifest_path: data/processed/asvspoof2019_la_manifest.csv
+  sample_rate: 16000
+  duration_seconds: 4.0
