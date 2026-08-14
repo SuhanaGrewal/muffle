@@ -26,3 +26,7 @@ class SSLHeadClassifier(nn.Module):
     """Input: (batch, time, hidden_size) frozen SSL hidden states.
     Output: (batch, 2) logits -- index 0 = bonafide, index 1 = spoof.
     """
+
+    def __init__(self, hidden_size: int = 768, mlp_hidden: int = 128, dropout: float = 0.1):
+        super().__init__()
+        self.pooling = AttentivePooling(hidden_size)
