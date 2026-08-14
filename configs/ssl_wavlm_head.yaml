@@ -5,3 +5,8 @@ data:
   manifest_path: data/processed/asvspoof2019_la_manifest.csv
   sample_rate: 16000
   duration_seconds: 4.0
+
+features:
+  # base-plus (not large) to stay realistic on local CPU/MPS -- see README for the
+  # large-model tradeoff if cloud compute becomes available later.
+  ssl_model_name: microsoft/wavlm-base-plus
