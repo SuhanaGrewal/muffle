@@ -10,3 +10,6 @@ from pydantic import BaseModel
 class DetectResponse(BaseModel):
     verdict: Literal["human", "ai_generated"]
     confidence: float
+    score_raw: float
+    model_version: str
+    processing_time_ms: float
