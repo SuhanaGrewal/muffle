@@ -17,3 +17,8 @@ class SSLFeatureExtractor:
         self.model.eval()
         for param in self.model.parameters():
             param.requires_grad = False
+
+    @torch.no_grad()
+    def __call__(self, waveform: torch.Tensor) -> torch.Tensor:
+        """waveform: (batch, samples) -> hidden states: (batch, time, hidden_size)."""
+        device = next(self.model.parameters()).device
