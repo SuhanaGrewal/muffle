@@ -21,3 +21,11 @@ def build_feature_extractor(cfg: dict):
             win_length_ms=cfg["features"]["win_length_ms"],
             hop_length_ms=cfg["features"]["hop_length_ms"],
         )
+
+    if model_type == "ssl_head":
+        return SSLFeatureExtractor(
+            model_name=cfg["features"]["ssl_model_name"],
+            sample_rate=cfg["data"]["sample_rate"],
+        )
+
+    raise ValueError(f"Unknown model_type: {model_type!r}")
