@@ -1,0 +1,1 @@
+from muffle.data.manifests import build_deep_voice_manifest
