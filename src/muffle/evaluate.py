@@ -88,17 +88,10 @@ def main() -> None:
     cfg = yaml.safe_load(args.config.read_text())
     device = resolve_device(cfg["train"]["device"])
 
-    extractor = LFCCExtractor(
-        sample_rate=cfg["data"]["sample_rate"],
-        n_lfcc=cfg["features"]["n_lfcc"],
-        n_filter=cfg["features"]["n_filter"],
-        win_length_ms=cfg["features"]["win_length_ms"],
-        hop_length_ms=cfg["features"]["hop_length_ms"],
-    )
-    model = SpoofCNN(
-        n_feat=cfg["features"]["n_lfcc"] * 3,
-        hidden_channels=tuple(cfg["model"]["hidden_channels"]),
-    ).to(device)
+    extractor = build_feature_extractor(cfg)
+    if hasattr(extractor, "to"):
+        extractor = extractor.to(device)
+    model = build_model(cfg).to(device)
     checkpoint = torch.load(args.checkpoint, map_location=device)
     model.load_state_dict(checkpoint["model_state"])
 
