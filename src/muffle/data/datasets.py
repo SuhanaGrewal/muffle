@@ -48,7 +48,24 @@ class AudioManifestDataset(Dataset):
 
     def __getitem__(self, idx: int) -> dict:
         row = self.manifest.iloc[idx]
-        waveform, file_sr = sf.read(row["path"], dtype="float32", always_2d=False)
+        path = row["path"]
+
+        # Seek-and-read only the needed window instead of decoding the whole file first --
+        # matters a lot for datasets with long clips (e.g. DEEP-VOICE's up-to-10-minute
+        # files): reading+resampling the full file per __getitem__ call made training
+        # painfully slow, since only a few seconds of it are ever used.
+        info = sf.info(path)
+        file_sr = info.samplerate
+        native_target_len = max(1, int(round(self.target_len * file_sr / self.sample_rate)))
+
+        if info.frames > native_target_len:
+            start = np.random.randint(0, info.frames - native_target_len + 1)
+            waveform, _ = sf.read(
+                path, start=start, frames=native_target_len, dtype="float32", always_2d=False
+            )
+        else:
+            waveform, _ = sf.read(path, dtype="float32", always_2d=False)
+
         if waveform.ndim > 1:
             waveform = waveform.mean(axis=1)  # downmix to mono
 
