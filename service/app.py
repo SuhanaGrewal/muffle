@@ -19,3 +19,8 @@ _engine: InferenceEngine | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _engine
+    config_path = os.environ.get("MUFFLE_CONFIG", "configs/baseline_lfcc_cnn.yaml")
+    checkpoint_path = os.environ.get(
+        "MUFFLE_CHECKPOINT", "checkpoints/baseline_lfcc_cnn/best.pt"
+    )
+    device = os.environ.get("MUFFLE_DEVICE", "cpu")
