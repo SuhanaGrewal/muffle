@@ -39,3 +39,10 @@ def test_combine_manifests_pools_rows_and_keeps_split_labels(tmp_path):
     }
     pd.DataFrame([row_a], columns=MANIFEST_COLUMNS).to_csv(manifest_a, index=False)
     pd.DataFrame([row_b], columns=MANIFEST_COLUMNS).to_csv(manifest_b, index=False)
+
+    combined = combine_manifests([manifest_a, manifest_b])
+
+    assert len(combined) == 2
+    assert set(combined["dataset"]) == {"a", "b"}
+    assert set(combined["split"]) == {"train", "eval"}
+    assert list(combined.columns) == MANIFEST_COLUMNS
