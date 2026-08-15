@@ -22,3 +22,8 @@ def test_build_deep_voice_manifest_labels_and_splits(tmp_path):
     assert bonafide_splits.count("eval") == 1
     assert bonafide_splits.count("dev") == 1
     assert bonafide_splits.count("train") == 2
+
+
+def test_combine_manifests_pools_rows_and_keeps_split_labels(tmp_path):
+    manifest_a = tmp_path / "a.csv"
+    manifest_b = tmp_path / "b.csv"
