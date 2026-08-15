@@ -1,4 +1,4 @@
-from muffle.data.manifests import build_deep_voice_manifest
+from muffle.data.manifests import build_deep_voice_manifest, combine_manifests
 
 
 def _touch_wavs(directory, names):
