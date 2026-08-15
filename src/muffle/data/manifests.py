@@ -12,16 +12,19 @@ import pandas as pd
 
 MANIFEST_COLUMNS = ["path", "label", "dataset", "attack_id", "speaker_id", "split"]
 
-# ASVspoof2019 LA protocol filenames per split, relative to the dataset root.
+# ASVspoof2019 LA protocol filenames per split, relative to the dataset root. The zip
+# extracts with an extra LA/ wrapper folder (LA.zip -> LA/ASVspoof2019_LA_train/... ),
+# discovered only once a real download landed -- not documented anywhere we could see
+# in advance.
 _ASVSPOOF2019_LA_PROTOCOLS = {
-    "train": "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt",
-    "dev": "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
-    "eval": "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
+    "train": "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt",
+    "dev": "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
+    "eval": "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
 }
 _ASVSPOOF2019_LA_AUDIO_DIRS = {
-    "train": "ASVspoof2019_LA_train/flac",
-    "dev": "ASVspoof2019_LA_dev/flac",
-    "eval": "ASVspoof2019_LA_eval/flac",
+    "train": "LA/ASVspoof2019_LA_train/flac",
+    "dev": "LA/ASVspoof2019_LA_dev/flac",
+    "eval": "LA/ASVspoof2019_LA_eval/flac",
 }
 
 
