@@ -172,6 +172,17 @@ _BUILDERS = {
 }
 
 
+def combine_manifests(manifest_paths: list[Path]) -> pd.DataFrame:
+    """Concatenate several per-dataset manifests into one training manifest. Each
+    input keeps its own `split` column values (already train/dev/eval per-dataset),
+    so combining datasets doesn't change any individual dataset's split assignment --
+    it just pools them under the same split label for a bigger, more diverse training set.
+    """
+    frames = [pd.read_csv(p) for p in manifest_paths]
+    combined = pd.concat(frames, ignore_index=True)
+    return combined[MANIFEST_COLUMNS]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", required=True, choices=sorted(_BUILDERS))
