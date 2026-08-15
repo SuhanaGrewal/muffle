@@ -185,7 +185,14 @@ def combine_manifests(manifest_paths: list[Path]) -> pd.DataFrame:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", required=True, choices=sorted(_BUILDERS))
+    parser.add_argument("--dataset", choices=sorted(_BUILDERS), help="Build one dataset's manifest")
+    parser.add_argument(
+        "--combine",
+        nargs="+",
+        type=Path,
+        metavar="MANIFEST_CSV",
+        help="Combine multiple existing manifest CSVs into one (instead of building one)",
+    )
     parser.add_argument(
         "--data-root",
         type=Path,
@@ -196,14 +203,20 @@ def main() -> None:
         "--out",
         type=Path,
         default=None,
-        help="Output CSV path (default: data/processed/<dataset>_manifest.csv)",
+        help="Output CSV path (default depends on mode, see below)",
     )
     args = parser.parse_args()
 
-    dataset_root = args.data_root / args.dataset
-    manifest = _BUILDERS[args.dataset](dataset_root)
+    if args.combine:
+        manifest = combine_manifests(args.combine)
+        out_path = args.out or Path("data/processed/combined_manifest.csv")
+    elif args.dataset:
+        dataset_root = args.data_root / args.dataset
+        manifest = _BUILDERS[args.dataset](dataset_root)
+        out_path = args.out or Path("data/processed") / f"{args.dataset}_manifest.csv"
+    else:
+        parser.error("pass either --dataset or --combine")
 
-    out_path = args.out or Path("data/processed") / f"{args.dataset}_manifest.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     manifest.to_csv(out_path, index=False)
 
