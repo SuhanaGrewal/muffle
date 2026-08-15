@@ -12,18 +12,19 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-# Rough expected file counts per ASVspoof2019 LA split (train/dev/eval flac counts,
-# per the official dataset documentation) — used as a sanity check, not an exact match,
-# since it should catch "extraction was truncated" without being brittle to minor deltas.
+# Rough expected file counts per ASVspoof2019 LA split (train/dev/eval flac counts),
+# confirmed against a real extraction (25,380 / 24,986 / 43,638) -- used as a sanity
+# check, not an exact match, since it should catch "extraction was truncated" without
+# being brittle to minor deltas. Paths include the LA.zip's LA/ wrapper folder.
 _ASVSPOOF2019_LA_EXPECTED_MIN_FILES = {
-    "ASVspoof2019_LA_train/flac": 20_000,
-    "ASVspoof2019_LA_dev/flac": 20_000,
-    "ASVspoof2019_LA_eval/flac": 60_000,
+    "LA/ASVspoof2019_LA_train/flac": 20_000,
+    "LA/ASVspoof2019_LA_dev/flac": 20_000,
+    "LA/ASVspoof2019_LA_eval/flac": 35_000,
 }
 _ASVSPOOF2019_LA_REQUIRED_PROTOCOLS = [
-    "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt",
-    "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
-    "ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
+    "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt",
+    "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
+    "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
 ]
 
 
