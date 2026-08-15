@@ -2,7 +2,7 @@ model_name: baseline_lfcc_cnn
 model_type: cnn_baseline
 
 data:
-  manifest_path: data/processed/deep_voice_manifest.csv
+  manifest_path: data/processed/combined_manifest.csv
   sample_rate: 16000
   duration_seconds: 4.0
 
