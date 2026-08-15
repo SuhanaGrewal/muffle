@@ -116,9 +116,59 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
 
 
+def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
+    """garystafford/deepfake-audio-detection, materialized locally by
+    scripts/materialize_garystafford.py. Unlike DEEP-VOICE, this has enough samples
+    (933 real, 933 fake) for a real proportional 80/10/10 split rather than a
+    last-few-files placeholder.
+    """
+    real_files = sorted((dataset_root / "real").glob("*.flac"))
+    fake_files = sorted((dataset_root / "fake").glob("*.flac"))
+
+    if not real_files or not fake_files:
+        raise FileNotFoundError(
+            f"Expected {dataset_root}/real/*.flac and {dataset_root}/fake/*.flac -- "
+            "run scripts/materialize_garystafford.py first."
+        )
+
+    def split_for(index: int) -> str:
+        if index % 10 == 0:
+            return "eval"
+        if index % 10 == 1:
+            return "dev"
+        return "train"
+
+    rows = []
+    for i, path in enumerate(real_files):
+        rows.append(
+            {
+                "path": str(path),
+                "label": "bonafide",
+                "dataset": "garystafford",
+                "attack_id": None,
+                "speaker_id": None,
+                "split": split_for(i),
+            }
+        )
+    for i, path in enumerate(fake_files):
+        rows.append(
+            {
+                "path": str(path),
+                "label": "spoof",
+                "dataset": "garystafford",
+                "attack_id": "commercial_tts",
+                "speaker_id": None,
+                "split": split_for(i),
+            }
+        )
+
+    return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+
+
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
     "deep_voice": build_deep_voice_manifest,
+    "garystafford": build_garystafford_manifest,
 }
 
 
