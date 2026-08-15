@@ -1,4 +1,6 @@
-from muffle.data.manifests import build_deep_voice_manifest, combine_manifests
+import pandas as pd
+
+from muffle.data.manifests import MANIFEST_COLUMNS, build_deep_voice_manifest, combine_manifests
 
 
 def _touch_wavs(directory, names):
