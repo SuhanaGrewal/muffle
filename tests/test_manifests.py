@@ -29,3 +29,13 @@ def test_build_deep_voice_manifest_labels_and_splits(tmp_path):
 def test_combine_manifests_pools_rows_and_keeps_split_labels(tmp_path):
     manifest_a = tmp_path / "a.csv"
     manifest_b = tmp_path / "b.csv"
+    row_a = {
+        "path": "a.wav", "label": "bonafide", "dataset": "a",
+        "attack_id": None, "speaker_id": "s1", "split": "train",
+    }
+    row_b = {
+        "path": "b.wav", "label": "spoof", "dataset": "b",
+        "attack_id": "x", "speaker_id": "s2", "split": "eval",
+    }
+    pd.DataFrame([row_a], columns=MANIFEST_COLUMNS).to_csv(manifest_a, index=False)
+    pd.DataFrame([row_b], columns=MANIFEST_COLUMNS).to_csv(manifest_b, index=False)
