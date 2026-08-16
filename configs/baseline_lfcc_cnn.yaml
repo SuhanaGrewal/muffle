@@ -17,7 +17,10 @@ model:
 
 train:
   batch_size: 32
-  num_workers: 4
+  # num_workers>0 stalled badly here (macOS multiprocessing + MPS device interaction --
+  # worker processes spun up but did almost no work over ~20 minutes). Single-process
+  # loading is plenty fast for this model size, so not worth chasing the root cause.
+  num_workers: 0
   epochs: 20
   lr: 0.0003
   weight_decay: 0.00001
