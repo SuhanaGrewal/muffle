@@ -30,13 +30,13 @@ project's evaluation protocol is built around measuring that gap explicitly
 | WaveFake | Cross-dataset generalization test (different vocoder family) | CC-BY-SA 4.0 |
 | In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | Verify license before any commercial use |
 
-**DEEP-VOICE is tiny** (~62 minutes total: 8 real clips + 56 RVC-converted fakes) --
-enough to validate the pipeline against real (not synthetic) US-accented audio cheaply
-(<1GB, no institutional gate), but thin for training a detector that needs to
-generalize broadly. **LJSpeech + WaveFake's LJSpeech-conditioned subsets** (also US-accented:
-a single American speaker, vocoder-resynthesis and one genuine full-TTS attack) is a
-much larger, more statistically robust option (~29GB, one non-partitionable Zenodo zip,
-no gate) planned as a Phase 2+ addition once there's a concrete reason to need more data.
+**DEEP-VOICE is tiny on its own** (~62 minutes total: 8 real clips + 56 RVC-converted
+fakes) -- not enough to train or evaluate anything trustworthy by itself (an eval split
+with 1 example per class is a coin flip, not a measurement). Combined with garystafford
+and ASVspoof2019 LA it contributes real diversity (a different attack type, RVC voice
+conversion) to a much bigger combined pool. **LJSpeech + WaveFake's LJSpeech-conditioned
+subsets** (also US-accented, ~29GB, one non-partitionable Zenodo zip) remains a documented
+but not-yet-pursued option if more data is needed later.
 
 **MLAAD is deliberately excluded** (CC-BY-NC 4.0, non-commercial) — not used here even
 though this is a research project, to avoid any future re-licensing risk.
