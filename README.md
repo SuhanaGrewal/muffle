@@ -45,8 +45,9 @@ ASVspoof5 and FakeAVCeleb were considered but not included in this phase (gated/
 access terms) — worth revisiting if the project needs multilingual or audio-visual
 coverage later.
 
-Datasets are downloaded on demand (see `scripts/`) and are gitignored — only
-ASVspoof2019 LA (~7GB) is required for Phase 1.
+Datasets are downloaded on demand (see `scripts/`) and are gitignored. All three
+(DEEP-VOICE, garystafford, ASVspoof2019 LA) are combined for the current baseline
+training run -- see the Usage section below.
 
 ## Architecture
 
