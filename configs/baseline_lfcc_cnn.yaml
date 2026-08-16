@@ -21,10 +21,10 @@ train:
   epochs: 20
   lr: 0.0003
   weight_decay: 0.00001
-  # DEEP-VOICE + garystafford combined are close to balanced (751 bonafide / 799 spoof
-  # train rows); revisit this weighting if ASVspoof2019 LA (heavily spoof-skewed) gets
-  # combined in too.
-  class_weights: [1.0, 1.0]  # [bonafide, spoof]
+  # ASVspoof2019 LA now dominates the combined train split by row count and is heavily
+  # spoof-skewed (~7:1 spoof:bonafide across all three datasets combined), so weight
+  # bonafide errors up accordingly.
+  class_weights: [7.0, 1.0]  # [bonafide, spoof]
   device: auto  # auto -> mps if available, else cpu
   checkpoint_dir: checkpoints/baseline_lfcc_cnn
   seed: 0
