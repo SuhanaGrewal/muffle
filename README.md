@@ -23,8 +23,9 @@ project's evaluation protocol is built around measuring that gap explicitly
 
 | Dataset | Role | License |
 |---|---|---|
-| DEEP-VOICE | Primary training set -- 8 American public figures, real audio vs. RVC voice-conversion fakes | Kaggle, freely downloadable |
-| ASVspoof2019 LA | Cross-accent generalization test (British/VCTK speakers) | Open Data Commons Attribution (free, no gate) |
+| DEEP-VOICE | Combined into training -- 8 American public figures, real audio vs. RVC voice-conversion fakes | Kaggle, freely downloadable |
+| garystafford/deepfake-audio-detection | Combined into training -- 933 real / 933 commercial-TTS fakes, materialized locally from HF streaming (see `scripts/materialize_garystafford.py`) | CC-BY-4.0 |
+| ASVspoof2019 LA | Combined into training -- adds volume and diversity (121k rows) but reintroduces British/VCTK-accented speakers into the training mix | Open Data Commons Attribution (free, no gate) |
 | ASVspoof2021 DF | Cross-dataset generalization test (codec-compressed, closer to phone audio) | Zenodo, free registration |
 | WaveFake | Cross-dataset generalization test (different vocoder family) | CC-BY-SA 4.0 |
 | In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | Verify license before any commercial use |
