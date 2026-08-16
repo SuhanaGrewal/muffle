@@ -148,6 +148,14 @@ curl -F file=@sample.wav http://localhost:8000/detect
 
 ## Known limitations / future work
 
+- **`num_workers > 0` stalls badly on macOS with the MPS device** -- DataLoader worker
+  processes spun up but did almost no work over ~20 minutes real time. Root cause not
+  investigated further; `configs/*.yaml` set `num_workers: 0`, which is fast enough at
+  this model/data scale. Worth revisiting only if training throughput actually matters.
+- **Long-running local training needs `caffeinate` (or equivalent).** A training run
+  left running while the Mac was asleep accumulated 9.5 hours of wall-clock time for
+  ~23 minutes of actual CPU work -- background processes get paused, not killed, on
+  sleep. Wrap long training/download commands in `caffeinate -i` to prevent this.
 - **Streaming/real-time detection is not built.** This system analyzes a
   recorded/uploaded clip, not a live call. Moving to real-time would require:
   a fixed-size sliding-window chunking strategy (e.g. 1-2s windows with overlap)
