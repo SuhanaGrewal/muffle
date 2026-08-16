@@ -23,7 +23,8 @@ train:
   epochs: 15
   lr: 0.0003
   weight_decay: 0.00001
-  class_weights: [9.0, 1.0]  # [bonafide, spoof], same rationale as the baseline config
+  # Matches the combined dataset's actual ~7:1 spoof:bonafide skew (see baseline config).
+  class_weights: [7.0, 1.0]  # [bonafide, spoof]
   device: auto
   checkpoint_dir: checkpoints/ssl_wavlm_head
   seed: 0
