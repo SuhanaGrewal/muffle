@@ -92,19 +92,27 @@ pip install -e ".[dev]"
 ## Usage
 
 ```bash
-# 1. Download DEEP-VOICE (see scripts/download_deep_voice.sh -- needs a free Kaggle
-#    account + API token, or a manual download from the Kaggle page)
+# 1. Download DEEP-VOICE (needs a free Kaggle account + API token)
 bash scripts/download_deep_voice.sh
-
-# 2. Build the manifest from the downloaded REAL/FAKE folders
 python -m muffle.data.manifests --dataset deep_voice
 
-# 2b. Optional: also set up ASVspoof2019 LA as a cross-accent generalization benchmark
-#     (see scripts/download_asvspoof2019.sh -- separate manual click-through download)
+# 2. Materialize garystafford/deepfake-audio-detection from HF streaming (no bulk
+#    download -- pulls samples one at a time and writes them locally)
+python scripts/materialize_garystafford.py
+python -m muffle.data.manifests --dataset garystafford
+
+# 3. Download ASVspoof2019 LA (manual click-through -- see scripts/download_asvspoof2019.sh)
 bash scripts/download_asvspoof2019.sh
 python -m muffle.data.manifests --dataset asvspoof2019_la
 
-# 3. Train the Phase 1 baseline
+# 4. Combine all three into one training manifest
+python -m muffle.data.manifests --combine \
+    data/processed/deep_voice_manifest.csv \
+    data/processed/garystafford_manifest.csv \
+    data/processed/asvspoof2019_la_manifest.csv \
+    --out data/processed/combined_manifest.csv
+
+# 5. Train the Phase 1 baseline
 python -m muffle.train --config configs/baseline_lfcc_cnn.yaml
 
 # 4. Evaluate (EER / min t-DCF)
