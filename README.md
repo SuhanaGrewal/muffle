@@ -136,10 +136,12 @@ curl -F file=@sample.wav http://localhost:8000/detect
   downstream speaker-verification system's errors alongside the countermeasure's own
   errors. Implemented in `src/muffle/metrics.py`, ported and unit-tested against the
   official reference implementation's known values — not reimplemented from scratch.
-- **Cross-dataset generalization**: train on ASVspoof2019 LA, evaluate (no fine-tuning)
-  on ASVspoof2021 DF, WaveFake, and In-the-Wild. This is the headline result — it
-  indicates whether the detector generalizes or just memorized ASVspoof-specific
-  artifacts.
+- **Cross-dataset generalization**: originally planned as train-on-A/eval-on-B across
+  separate datasets. **Currently not what's happening** -- DEEP-VOICE, garystafford, and
+  ASVspoof2019 LA are all pooled into one combined train/dev/eval split (for training
+  volume), so the current eval numbers are in-domain, not a generalization test. A
+  held-out-dataset eval (train on two, test purely on the third, never seen during
+  training) is still the real test of whether this generalizes and is not yet done.
 - **Telephony realism**: re-run evaluation after simulating phone codecs (G.711/AMR,
   8kHz downsampling) on the audio, since training data is studio-quality but the real
   KYC use case is phone audio.
