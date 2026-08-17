@@ -191,11 +191,11 @@ def subsample_manifest(df: pd.DataFrame, max_per_group: int, seed: int = 0) -> p
     heavier model (e.g. frozen-SSL) can do a quick trial run in a fraction of the time --
     at the cost of a noisier, less statistically robust result than the full dataset.
     """
-    return (
-        df.groupby(["split", "label"], group_keys=False)
-        .apply(lambda g: g.sample(n=min(len(g), max_per_group), random_state=seed))
-        .reset_index(drop=True)
-    )
+    # Iterate the groupby explicitly rather than .apply(): pandas 2.2+ excludes the
+    # grouping columns (split, label) from what .apply() passes to the callback by
+    # default, which silently dropped them here.
+    parts = [group.sample(n=min(len(group), max_per_group), random_state=seed) for _, group in df.groupby(["split", "label"])]
+    return pd.concat(parts, ignore_index=True)
 
 
 def main() -> None:
