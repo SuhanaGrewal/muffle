@@ -186,6 +186,18 @@ def combine_manifests(manifest_paths: list[Path]) -> pd.DataFrame:
     return combined[MANIFEST_COLUMNS]
 
 
+def subsample_manifest(df: pd.DataFrame, max_per_group: int, seed: int = 0) -> pd.DataFrame:
+    """Cap each (split, label) group at `max_per_group` rows via random sampling, so a
+    heavier model (e.g. frozen-SSL) can do a quick trial run in a fraction of the time --
+    at the cost of a noisier, less statistically robust result than the full dataset.
+    """
+    return (
+        df.groupby(["split", "label"], group_keys=False)
+        .apply(lambda g: g.sample(n=min(len(g), max_per_group), random_state=seed))
+        .reset_index(drop=True)
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", choices=sorted(_BUILDERS), help="Build one dataset's manifest")
