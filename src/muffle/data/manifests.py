@@ -220,6 +220,12 @@ def main() -> None:
         default=None,
         help="Output CSV path (default depends on mode, see below)",
     )
+    parser.add_argument(
+        "--subsample-max-per-group",
+        type=int,
+        default=None,
+        help="Cap each (split, label) group at this many rows, for a quick shorter-window run",
+    )
     args = parser.parse_args()
 
     if args.combine:
@@ -231,6 +237,9 @@ def main() -> None:
         out_path = args.out or Path("data/processed") / f"{args.dataset}_manifest.csv"
     else:
         parser.error("pass either --dataset or --combine")
+
+    if args.subsample_max_per_group:
+        manifest = subsample_manifest(manifest, args.subsample_max_per_group)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     manifest.to_csv(out_path, index=False)
