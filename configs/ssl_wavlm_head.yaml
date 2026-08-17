@@ -25,8 +25,8 @@ train:
   epochs: 15
   lr: 0.0003
   weight_decay: 0.00001
-  # Matches the combined dataset's actual ~7:1 spoof:bonafide skew (see baseline config).
-  class_weights: [7.0, 1.0]  # [bonafide, spoof]
+  # The subsampled manifest is balanced 1:1 per class (unlike the full dataset).
+  class_weights: [1.0, 1.0]  # [bonafide, spoof]
   device: auto
   checkpoint_dir: checkpoints/ssl_wavlm_head
   seed: 0
