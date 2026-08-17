@@ -2,7 +2,9 @@ model_name: ssl_wavlm_head
 model_type: ssl_head
 
 data:
-  manifest_path: data/processed/combined_manifest.csv
+  # Subsampled (800/class/split, balanced) for a short-window trial run -- see
+  # combined_manifest.csv for the full unsampled dataset used by the CNN baseline.
+  manifest_path: data/processed/combined_manifest_small.csv
   sample_rate: 16000
   duration_seconds: 4.0
 
