@@ -22,7 +22,7 @@ train:
   batch_size: 8  # SSL forward passes are far heavier than LFCC; smaller batch than baseline
   # num_workers>0 stalled badly on macOS/MPS (see baseline config + README) -- same fix.
   num_workers: 0
-  epochs: 15
+  epochs: 10  # fewer epochs for the short-window subsampled trial run
   lr: 0.0003
   weight_decay: 0.00001
   # The subsampled manifest is balanced 1:1 per class (unlike the full dataset).
