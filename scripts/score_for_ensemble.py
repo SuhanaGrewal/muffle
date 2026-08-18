@@ -34,3 +34,11 @@ def main() -> None:
 
     cfg = yaml.safe_load(args.config.read_text())
     device = resolve_device(cfg["train"]["device"])
+
+    extractor = build_feature_extractor(cfg)
+    if hasattr(extractor, "to"):
+        extractor = extractor.to(device)
+    model = build_model(cfg).to(device)
+    checkpoint = torch.load(args.checkpoint, map_location=device)
+    model.load_state_dict(checkpoint["model_state"])
+    model.eval()
