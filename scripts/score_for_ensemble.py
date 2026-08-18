@@ -47,3 +47,5 @@ def main() -> None:
         args.manifest, sample_rate=cfg["data"]["sample_rate"], duration_seconds=cfg["data"]["duration_seconds"]
     )
     loader = DataLoader(ds, batch_size=cfg["train"]["batch_size"], shuffle=False, num_workers=0, collate_fn=collate_batch)
+
+    scores, labels, attack_ids = [], [], []
