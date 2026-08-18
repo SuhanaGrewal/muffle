@@ -22,3 +22,12 @@ from tqdm import tqdm
 from muffle.data.datasets import AudioManifestDataset, collate_batch
 from muffle.factory import build_feature_extractor, build_model
 from muffle.train import resolve_device
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", required=True, type=Path)
+    parser.add_argument("--checkpoint", required=True, type=Path)
+    parser.add_argument("--manifest", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    args = parser.parse_args()
