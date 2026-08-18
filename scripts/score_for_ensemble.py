@@ -31,3 +31,6 @@ def main() -> None:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
+
+    cfg = yaml.safe_load(args.config.read_text())
+    device = resolve_device(cfg["train"]["device"])
