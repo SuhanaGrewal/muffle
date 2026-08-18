@@ -59,3 +59,16 @@ def main() -> None:
             scores.append(batch_scores)
             labels.append(batch["label"].numpy())
             attack_ids.extend(batch["attack_id"])
+
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(
+        args.out,
+        scores=np.concatenate(scores),
+        labels=np.concatenate(labels),
+        attack_ids=np.array(attack_ids, dtype=object),
+    )
+    print(f"Wrote {len(np.concatenate(labels))} scores to {args.out}")
+
+
+if __name__ == "__main__":
+    main()
