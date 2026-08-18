@@ -42,3 +42,8 @@ def main() -> None:
     checkpoint = torch.load(args.checkpoint, map_location=device)
     model.load_state_dict(checkpoint["model_state"])
     model.eval()
+
+    ds = AudioManifestDataset(
+        args.manifest, sample_rate=cfg["data"]["sample_rate"], duration_seconds=cfg["data"]["duration_seconds"]
+    )
+    loader = DataLoader(ds, batch_size=cfg["train"]["batch_size"], shuffle=False, num_workers=0, collate_fn=collate_batch)
