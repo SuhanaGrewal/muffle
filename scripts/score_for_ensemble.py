@@ -49,3 +49,13 @@ def main() -> None:
     loader = DataLoader(ds, batch_size=cfg["train"]["batch_size"], shuffle=False, num_workers=0, collate_fn=collate_batch)
 
     scores, labels, attack_ids = [], [], []
+
+    with torch.no_grad():
+        for batch in tqdm(loader, desc="scoring"):
+            waveforms = batch["waveform"].to(device)
+            features = extractor(waveforms)
+            logits = model(features)
+            batch_scores = (logits[:, 0] - logits[:, 1]).cpu().numpy()
+            scores.append(batch_scores)
+            labels.append(batch["label"].numpy())
+            attack_ids.extend(batch["attack_id"])
