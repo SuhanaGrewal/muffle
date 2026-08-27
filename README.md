@@ -175,9 +175,18 @@ consistent with the two models' error patterns being complementary rather than
 redundant. Scores must come from `scripts/score_for_ensemble.py` run against the exact
 same manifest for both models (row order must match) before combining.
 
+**Fusion experiment (negative result, kept for honesty):** `scripts/fit_fusion.py` fits a
+logistic regression on dev-set CNN+WavLM scores instead of assuming a 50/50 average, then
+applies it to the eval subset. This scored *worse* -- 8.62% EER, vs. 6.68% for the plain
+average. Likely cause: dev shares attack types with train (A01-A06), while eval introduces
+unseen attack types (A07-A19) -- the fitted weights captured a CNN/WavLM relationship
+specific to dev's attack distribution that didn't transfer to eval's unseen attacks. Plain
+averaging turned out more robust to that shift than a model fit to seen-attack data. Kept
+as the reported result: simple averaging, not learned fusion.
+
 Next step: retrain WavLM on the full combined manifest (not the 4.8k-row subsample) for
-a fair standalone comparison and likely a stronger ensemble -- not yet done, needs several
-hours of uninterrupted local compute.
+a fair standalone comparison and likely a stronger ensemble -- not yet done (needs 8-16
+hours of uninterrupted local compute; deferred for now given machine time constraints).
 
 ## Known limitations / future work
 
