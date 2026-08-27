@@ -24,9 +24,13 @@ _engine: InferenceEngine | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _engine
-    config_path = os.environ.get("MUFFLE_CONFIG", "configs/baseline_lfcc_cnn.yaml")
+    # WavLM is the default: cross-dataset eval on In-the-Wild (real-world deepfakes,
+    # never trained on) showed the CNN baseline collapses to 55.28% EER (chance level)
+    # while WavLM holds at 14.85% -- the frozen-SSL generalization bet actually paid off.
+    # See README's Results section.
+    config_path = os.environ.get("MUFFLE_CONFIG", "configs/ssl_wavlm_head.yaml")
     checkpoint_path = os.environ.get(
-        "MUFFLE_CHECKPOINT", "checkpoints/baseline_lfcc_cnn/best.pt"
+        "MUFFLE_CHECKPOINT", "checkpoints/ssl_wavlm_head/best.pt"
     )
     device = os.environ.get("MUFFLE_DEVICE", "cpu")
 
