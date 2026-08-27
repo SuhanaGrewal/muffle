@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>muffle — AI voice detection</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #14171b;
+    --border: #262b31;
+    --text: #e7e9ea;
+    --muted: #8b939b;
+    --accent: #5b8cff;
+    --human: #3ddc84;
+    --ai: #ff5c5c;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --sans: "DM Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+  }
+  .card {
+    width: min(480px, 92vw);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 28px;
+  }
+  .record-btn {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--accent);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .record-btn:hover { transform: scale(1.04); }
+  .record-btn:active { transform: scale(0.97); }
+  .record-btn.recording {
+    background: var(--ai);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .record-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.4); }
+    50% { box-shadow: 0 0 0 14px rgba(255, 92, 92, 0); }
+  }
+  .status {
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  .result {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .result.visible { display: block; }
+  .verdict {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .verdict.human { color: var(--human); }
+  .verdict.ai_generated { color: var(--ai); }
+  .meta {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+  }
+  .error {
+    margin-top: 18px;
+    color: var(--ai);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    display: none;
+  }
+  .error.visible { display: block; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>muffle</h1>
+    <p class="subtitle">record a clip — human speech or AI-generated?</p>
+
+    <button class="record-btn" id="recordBtn" aria-label="Record"></button>
+    <div class="status" id="status">press to record</div>
+
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+      <div class="verdict" id="verdict"></div>
+      <div class="meta">
+        <span id="confidence"></span>
+        <span id="modelVersion"></span>
+        <span id="latency"></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
