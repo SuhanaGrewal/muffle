@@ -188,6 +188,34 @@ Next step: retrain WavLM on the full combined manifest (not the 4.8k-row subsamp
 a fair standalone comparison and likely a stronger ensemble -- not yet done (needs 8-16
 hours of uninterrupted local compute; deferred for now given machine time constraints).
 
+### Cross-dataset generalization (the real test)
+
+Everything above is in-domain -- DEEP-VOICE, garystafford, and ASVspoof2019 LA are all
+pooled into one train/dev/eval split, so those eval numbers measure how well each model
+fits that shared distribution, not whether it generalizes. The actual test: score both
+already-trained checkpoints, cold, against **In-the-Wild** (Muller et al.) -- 31,779
+real-world deepfake clips of public figures, never seen during training, downloaded and
+scored via `scripts/score_for_ensemble.py` against `data/processed/in_the_wild_manifest.csv`.
+
+| Model | Cross-dataset EER (In-the-Wild) | In-domain eval EER |
+|---|---|---|
+| CNN (LFCC) | **55.28%** -- chance level | 16.75% |
+| WavLM + head | **14.85%** | 12.88% |
+| Ensemble (CNN+WavLM average) | 32.64% -- worse than WavLM alone | 6.68% |
+
+This is the project's central finding. The CNN's strong in-domain number was misleading
+-- it memorized artifacts specific to its training distribution (studio-quality audio,
+a narrow set of TTS/vocoder families) and is statistically indistinguishable from random
+guessing on real-world audio it wasn't trained on. WavLM's frozen self-supervised
+features hold up close to their in-domain number even cross-dataset -- the generalization
+bet behind using a frozen SSL backbone (see Architecture) actually paid off.
+
+**The ensemble that helped in-domain actively hurts cross-dataset.** Averaging a
+chance-level CNN score into WavLM's good score drags the combined result down --
+ensembling isn't free, and blending in a component that isn't generalizing makes things
+worse, not better. **`service/app.py` now defaults to serving WavLM alone**, not the
+ensemble, based on this result.
+
 ## Known limitations / future work
 
 - **`num_workers > 0` stalls badly on macOS with the MPS device** -- DataLoader worker
