@@ -13,3 +13,4 @@ __pycache__/
 .ruff_cache/
 wandb/
 .DS_Store
+scores/
