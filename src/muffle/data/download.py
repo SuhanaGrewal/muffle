@@ -67,9 +67,31 @@ def verify_deep_voice(dataset_root: Path) -> list[str]:
     return problems
 
 
+def verify_in_the_wild(dataset_root: Path) -> list[str]:
+    """Return a list of problems found (empty list == looks good). In-the-Wild's zip
+    extracts to release_in_the_wild.zip's top-level meta.csv + N.wav files -- unlike the
+    other datasets, this is real-world audio never used for training, only as a held-out
+    cross-dataset generalization benchmark (see README).
+    """
+    problems = []
+    meta_csv = dataset_root / "release_in_the_wild" / "meta.csv"
+    if not meta_csv.exists():
+        problems.append(f"missing metadata file: {meta_csv.relative_to(dataset_root.parent.parent)}")
+        return problems
+
+    audio_dir = meta_csv.parent
+    n_files = sum(1 for _ in audio_dir.glob("*.wav"))
+    if n_files < 20_000:
+        problems.append(
+            f"{audio_dir} has only {n_files} .wav files, expected ~31,779 -- extraction may be incomplete"
+        )
+    return problems
+
+
 _VERIFIERS = {
     "asvspoof2019_la": verify_asvspoof2019_la,
     "deep_voice": verify_deep_voice,
+    "in_the_wild": verify_in_the_wild,
 }
 
 
