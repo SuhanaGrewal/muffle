@@ -7,11 +7,16 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from service.inference import InferenceEngine
 from service.schemas import DetectResponse, HealthResponse
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 _engine: InferenceEngine | None = None
 
@@ -31,6 +36,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="muffle", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+
+@app.get("/")
+def index() -> FileResponse:
+    return FileResponse(_STATIC_DIR / "index.html")
 
 
 @app.get("/health", response_model=HealthResponse)
