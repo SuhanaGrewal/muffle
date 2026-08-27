@@ -168,10 +168,45 @@ def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
 
 
+def build_in_the_wild_manifest(dataset_root: Path) -> pd.DataFrame:
+    """In-the-Wild (Muller et al.) -- real-world deepfakes of public figures. Every row
+    is split="eval": this dataset is never trained on, only used as a held-out
+    cross-dataset generalization benchmark (see README's "Why this is hard" section).
+    """
+    release_dir = dataset_root / "release_in_the_wild"
+    meta_csv = release_dir / "meta.csv"
+    if not meta_csv.exists():
+        raise FileNotFoundError(
+            f"Missing {meta_csv} -- run scripts/download_in_the_wild.sh and check the extracted layout."
+        )
+
+    meta = pd.read_csv(meta_csv)
+    label_map = {"bona-fide": "bonafide", "spoof": "spoof"}
+
+    rows = []
+    for _, row in meta.iterrows():
+        rows.append(
+            {
+                "path": str(release_dir / row["file"]),
+                "label": label_map[row["label"]],
+                "dataset": "in_the_wild",
+                "attack_id": None,
+                "speaker_id": row.get("speaker"),
+                "split": "eval",
+            }
+        )
+
+    manifest = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+    if manifest.empty:
+        raise ValueError(f"Parsed zero rows from {meta_csv}")
+    return manifest
+
+
 _BUILDERS = {
     "asvspoof2019_la": build_asvspoof2019_la_manifest,
     "deep_voice": build_deep_voice_manifest,
     "garystafford": build_garystafford_manifest,
+    "in_the_wild": build_in_the_wild_manifest,
 }
 
 
