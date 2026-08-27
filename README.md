@@ -146,6 +146,39 @@ curl -F file=@sample.wav http://localhost:8000/detect
   8kHz downsampling) on the audio, since training data is studio-quality but the real
   KYC use case is phone audio.
 
+## Results
+
+EER on the combined dataset's eval split (in-domain, not cross-dataset -- see
+limitations above):
+
+| Model | Training data | Dev EER | Eval EER |
+|---|---|---|---|
+| CNN baseline (LFCC) | full combined manifest (123k rows) | 0.94% | 16.75% |
+| WavLM + head | shrunk subsample (4.8k rows, 18x less data) | -- | 12.88% |
+
+WavLM already generalizes better than the CNN despite far less training data, and the
+two models fail on different attack types (WavLM notably stronger on A12/A13, CNN
+stronger on A14/A17/A19) -- evidence of complementary rather than correlated errors.
+
+**Ensemble** (`scripts/ensemble_eval.py`): scoring both models' checkpoints against the
+same held-out 14,950-row eval subset (`data/processed/eval_subset_for_comparison.csv`,
+built with `subsample_manifest`) and averaging z-score-normalized scores:
+
+| Model | EER (shared subset) |
+|---|---|
+| CNN alone | 16.58% |
+| WavLM alone | 13.16% |
+| **Ensemble (normalized score average)** | **6.68%** |
+
+Averaging cuts EER by ~60% relative to the CNN alone and ~50% relative to WavLM alone --
+consistent with the two models' error patterns being complementary rather than
+redundant. Scores must come from `scripts/score_for_ensemble.py` run against the exact
+same manifest for both models (row order must match) before combining.
+
+Next step: retrain WavLM on the full combined manifest (not the 4.8k-row subsample) for
+a fair standalone comparison and likely a stronger ensemble -- not yet done, needs several
+hours of uninterrupted local compute.
+
 ## Known limitations / future work
 
 - **`num_workers > 0` stalls badly on macOS with the MPS device** -- DataLoader worker
