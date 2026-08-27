@@ -97,3 +97,57 @@ function audioBufferToWav(buffer) {
 
   return new Blob([arrayBuffer], { type: "audio/wav" });
 }
+
+async function handleRecordingStop() {
+  try {
+    const recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+    const arrayBuffer = await recordedBlob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+    const wavBlob = audioBufferToWav(decoded);
+    await audioCtx.close();
+    await sendForDetection(wavBlob);
+  } catch (err) {
+    showError("could not process recording: " + err.message);
+    resetButton();
+  }
+}
+
+async function sendForDetection(wavBlob) {
+  const formData = new FormData();
+  formData.append("file", wavBlob, "recording.wav");
+
+  try {
+    const res = await fetch("/detect", { method: "POST", body: formData });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || `server error (${res.status})`);
+    }
+    renderResult(await res.json());
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    resetButton();
+  }
+}
+
+function renderResult(data) {
+  errorEl.classList.remove("visible");
+  resultEl.classList.add("visible");
+  verdictEl.textContent = data.verdict === "human" ? "HUMAN" : "AI-GENERATED";
+  verdictEl.className = "verdict " + data.verdict;
+  confidenceEl.textContent = `confidence ${(data.confidence * 100).toFixed(1)}%`;
+  modelVersionEl.textContent = data.model_version;
+  latencyEl.textContent = `${data.processing_time_ms.toFixed(0)}ms`;
+}
+
+function showError(message) {
+  resultEl.classList.remove("visible");
+  errorEl.textContent = message;
+  errorEl.classList.add("visible");
+}
+
+function resetButton() {
+  recordBtn.disabled = false;
+  statusEl.textContent = "press to record";
+}
