@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import math
 import time
 from pathlib import Path
 
@@ -57,9 +58,15 @@ class InferenceEngine:
         features = self.extractor(batch)
         logits = self.model(features)  # (n_windows, 2)
 
-        # Mean-pool per-window scores rather than per-window votes, so one ambiguous
-        # window doesn't flip the verdict on an otherwise-confident long clip.
-        mean_logits = logits.mean(dim=0)
+        # For long clips split into many windows, most can be silence/intro/non-speech
+        # (common in full-length source clips) -- naive mean-pooling over all of them
+        # lets those ambiguous windows dilute a confident minority. Keep only the most
+        # decisive windows (top 25%, at least one) and pool those instead. For short
+        # clips (n_windows == 1, the typical live-demo case) this is a no-op.
+        window_scores = logits[:, 0] - logits[:, 1]
+        top_k = max(1, math.ceil(0.25 * n_windows))
+        top_indices = torch.topk(window_scores.abs(), top_k).indices
+        mean_logits = logits[top_indices].mean(dim=0)
         score_raw = (mean_logits[0] - mean_logits[1]).item()
 
         probs = torch.softmax(mean_logits, dim=0)
