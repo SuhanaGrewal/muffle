@@ -28,7 +28,7 @@ project's evaluation protocol is built around measuring that gap explicitly
 | ASVspoof2019 LA | Combined into training -- adds volume and diversity (121k rows) but reintroduces British/VCTK-accented speakers into the training mix | Open Data Commons Attribution (free, no gate) |
 | ASVspoof2021 DF | Cross-dataset generalization test (codec-compressed, closer to phone audio) | Zenodo, free registration |
 | WaveFake | Cross-dataset generalization test (different vocoder family) | CC-BY-SA 4.0 |
-| In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | Verify license before any commercial use |
+| In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | CC-BY-SA 4.0 -- commercial use OK with attribution + share-alike |
 
 **DEEP-VOICE is tiny on its own** (~62 minutes total: 8 real clips + 56 RVC-converted
 fakes) -- not enough to train or evaluate anything trustworthy by itself (an eval split
