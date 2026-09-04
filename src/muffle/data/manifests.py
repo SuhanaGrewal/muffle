@@ -6,6 +6,7 @@ evaluation) never has to know per-dataset file formats.
 from __future__ import annotations
 
 import argparse
+import random
 from pathlib import Path
 
 import pandas as pd
@@ -129,11 +130,54 @@ _GARYSTAFFORD_PREFIX_TO_ATTACK_ID = {
 }
 
 
+def _garystafford_source_id(path: Path) -> str:
+    """Chunks of the same source share a filename prefix before '_part_'/'_c_part_'
+    (e.g. el_0001_c_part_002.flac and el_0001_part_001.flac are both from ElevenLabs
+    generation request el_0001; yt_0000_part_045.flac and yt_0000_part_112.flac are both
+    chunks of source YouTube video yt_0000). This identifies which underlying recording
+    a chunk came from, for source-disjoint (not just file-disjoint) splitting.
+    """
+    stem = path.stem
+    for marker in ("_c_part_", "_part_"):
+        if marker in stem:
+            return stem.split(marker)[0]
+    return stem
+
+
+def _assign_splits_by_source(files: list[Path], seed: int = 0) -> dict[Path, str]:
+    """Assign every FILE to the same split as every other chunk of its source, so no
+    source recording/generation ever appears in more than one split. Assigning by raw
+    file index (the previous approach) let chunks of one source -- which sort
+    consecutively, since they share a filename prefix -- scatter across train/dev/eval,
+    causing severe leakage (measured: 81.8% of real sources, 63.5% of fake sources
+    overlapped across splits). A seeded shuffle avoids any alphabetical-order artifact
+    in which sources land in eval/dev.
+    """
+    sources = sorted({_garystafford_source_id(f) for f in files})
+    random.Random(seed).shuffle(sources)
+
+    source_to_split = {}
+    for i, source in enumerate(sources):
+        if i % 10 == 0:
+            source_to_split[source] = "eval"
+        elif i % 10 == 1:
+            source_to_split[source] = "dev"
+        else:
+            source_to_split[source] = "train"
+
+    return {f: source_to_split[_garystafford_source_id(f)] for f in files}
+
+
 def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
     """garystafford/deepfake-audio-detection, materialized locally by
     scripts/materialize_garystafford.py. Unlike DEEP-VOICE, this has enough samples
     (933 real, 933 fake) for a real proportional 80/10/10 split rather than a
     last-few-files placeholder.
+
+    Splits are assigned per SOURCE recording/generation (see _assign_splits_by_source),
+    not per file, so no source leaks across train/dev/eval -- exact file-count parity
+    with an 80/10/10 split isn't guaranteed since chunk-count varies per source, but
+    that's an acceptable trade-off for correctness over precise split-size control.
 
     Each fake filename is prefixed with which TTS platform made it (e.g. el_0001_...flac
     = ElevenLabs) -- mapped to a real attack_id per platform instead of one generic
@@ -148,15 +192,11 @@ def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
             "run scripts/materialize_garystafford.py first."
         )
 
-    def split_for(index: int) -> str:
-        if index % 10 == 0:
-            return "eval"
-        if index % 10 == 1:
-            return "dev"
-        return "train"
+    real_splits = _assign_splits_by_source(real_files)
+    fake_splits = _assign_splits_by_source(fake_files)
 
     rows = []
-    for i, path in enumerate(real_files):
+    for path in real_files:
         rows.append(
             {
                 "path": str(path),
@@ -164,10 +204,10 @@ def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
                 "dataset": "garystafford",
                 "attack_id": None,
                 "speaker_id": None,
-                "split": split_for(i),
+                "split": real_splits[path],
             }
         )
-    for i, path in enumerate(fake_files):
+    for path in fake_files:
         prefix = path.stem.split("_")[0]
         attack_id = _GARYSTAFFORD_PREFIX_TO_ATTACK_ID.get(prefix, "commercial_tts_unknown")
         rows.append(
@@ -177,7 +217,7 @@ def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
                 "dataset": "garystafford",
                 "attack_id": attack_id,
                 "speaker_id": None,
-                "split": split_for(i),
+                "split": fake_splits[path],
             }
         )
 
