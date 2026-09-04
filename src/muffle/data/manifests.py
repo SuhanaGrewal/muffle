@@ -119,11 +119,25 @@ def build_deep_voice_manifest(dataset_root: Path) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
 
 
+_GARYSTAFFORD_PREFIX_TO_ATTACK_ID = {
+    "el": "elevenlabs",
+    "po": "amazon_polly",
+    "hg": "hexgrad_kokoro",
+    "hu": "hume_ai",
+    "lv": "luvvoice",
+    "sp": "speechify",
+}
+
+
 def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
     """garystafford/deepfake-audio-detection, materialized locally by
     scripts/materialize_garystafford.py. Unlike DEEP-VOICE, this has enough samples
     (933 real, 933 fake) for a real proportional 80/10/10 split rather than a
     last-few-files placeholder.
+
+    Each fake filename is prefixed with which TTS platform made it (e.g. el_0001_...flac
+    = ElevenLabs) -- mapped to a real attack_id per platform instead of one generic
+    "commercial_tts" label, so subsampling/analysis can tell platforms apart.
     """
     real_files = sorted((dataset_root / "real").glob("*.flac"))
     fake_files = sorted((dataset_root / "fake").glob("*.flac"))
@@ -154,12 +168,14 @@ def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
             }
         )
     for i, path in enumerate(fake_files):
+        prefix = path.stem.split("_")[0]
+        attack_id = _GARYSTAFFORD_PREFIX_TO_ATTACK_ID.get(prefix, "commercial_tts_unknown")
         rows.append(
             {
                 "path": str(path),
                 "label": "spoof",
                 "dataset": "garystafford",
-                "attack_id": "commercial_tts",
+                "attack_id": attack_id,
                 "speaker_id": None,
                 "split": split_for(i),
             }
