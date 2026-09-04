@@ -6,6 +6,7 @@ const verdictEl = document.getElementById("verdict");
 const confidenceEl = document.getElementById("confidence");
 const modelVersionEl = document.getElementById("modelVersion");
 const latencyEl = document.getElementById("latency");
+const diagEl = document.getElementById("diag");
 
 let mediaRecorder = null;
 let audioChunks = [];
@@ -19,6 +20,7 @@ recordBtn.addEventListener("click", () => {
 async function startRecording() {
   errorEl.classList.remove("visible");
   resultEl.classList.remove("visible");
+  diagEl.textContent = "";
 
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -106,14 +108,27 @@ async function handleRecordingStop() {
     const decoded = await audioCtx.decodeAudioData(arrayBuffer);
     const wavBlob = audioBufferToWav(decoded);
     await audioCtx.close();
-    await sendForDetection(wavBlob);
+
+    // Diagnostic info shown alongside the verdict -- lets us see whether the mic
+    // actually captured real audio (nonzero duration, plausible byte size) without
+    // needing browser dev tools.
+    const diag = {
+      mimeType: mediaRecorder.mimeType,
+      recordedBytes: recordedBlob.size,
+      decodedDurationSec: decoded.duration,
+      decodedSampleRate: decoded.sampleRate,
+      decodedChannels: decoded.numberOfChannels,
+      wavBytes: wavBlob.size,
+    };
+
+    await sendForDetection(wavBlob, diag);
   } catch (err) {
     showError("could not process recording: " + err.message);
     resetButton();
   }
 }
 
-async function sendForDetection(wavBlob) {
+async function sendForDetection(wavBlob, diag) {
   const formData = new FormData();
   formData.append("file", wavBlob, "recording.wav");
 
@@ -123,7 +138,7 @@ async function sendForDetection(wavBlob) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.detail || `server error (${res.status})`);
     }
-    renderResult(await res.json());
+    renderResult(await res.json(), diag);
   } catch (err) {
     showError(err.message);
   } finally {
@@ -131,7 +146,7 @@ async function sendForDetection(wavBlob) {
   }
 }
 
-function renderResult(data) {
+function renderResult(data, diag) {
   errorEl.classList.remove("visible");
   resultEl.classList.add("visible");
   verdictEl.textContent = data.verdict === "human" ? "HUMAN" : "AI-GENERATED";
@@ -139,6 +154,12 @@ function renderResult(data) {
   confidenceEl.textContent = `confidence ${(data.confidence * 100).toFixed(1)}%`;
   modelVersionEl.textContent = data.model_version;
   latencyEl.textContent = `${data.processing_time_ms.toFixed(0)}ms`;
+
+  if (diag) {
+    diagEl.textContent =
+      `mic: ${diag.recordedBytes}B (${diag.mimeType}) -> decoded ${diag.decodedDurationSec.toFixed(2)}s ` +
+      `@ ${diag.decodedSampleRate}Hz/${diag.decodedChannels}ch -> wav ${diag.wavBytes}B`;
+  }
 }
 
 function showError(message) {
