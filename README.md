@@ -248,6 +248,43 @@ training-data diversity did not automatically buy better generalization here.
 config/checkpoint (`configs/ssl_wavlm_head_v2.yaml`, `checkpoints/ssl_wavlm_head_v2/`)
 is kept for reference, not deployed.
 
+### Follow-up: fixing garystafford's split leakage (still doesn't beat v1)
+
+A deeper investigation into v2's regression found `build_garystafford_manifest`'s split
+assignment was leaking badly: it assigned train/dev/eval by file index over an
+alphabetically sorted list, but chunks of the same source recording share a filename
+prefix and sort consecutively -- so **81.8% of real sources and 63.5% of fake sources**
+appeared in train *and* dev *and* eval simultaneously (98.4% for the dev slice
+specifically), inflating the dev-EER metric used for checkpoint selection by ~0.9 points.
+
+Fixed in `_assign_splits_by_source` (`manifests.py`): every chunk of a given source now
+gets assigned to exactly one split (source-disjoint, not just file-disjoint), verified at
+0% leakage after the fix. Retrained on the corrected manifest as WavLM v3
+(`configs/ssl_wavlm_head_v3.yaml`, `checkpoints/ssl_wavlm_head_v3/`):
+
+| Model | Cross-dataset EER (In-the-Wild) | In-domain eval EER | Real Acc | Fake Acc |
+|---|---|---|---|---|
+| v1 | **14.85%** | 12.75% | 85.60% | 84.61% |
+| v2 (leaked) | 19.25% | 12.58% | 73.49% | 85.21% |
+| v3 (leak-fixed) | 18.44% | 12.95% | 70.46% | 87.36% |
+
+The leakage fix recovered only ~0.8 points of cross-dataset EER -- close to the ~0.9-point
+inflation the leakage audit predicted independently, which is good corroborating evidence
+the two analyses agree. But **v3 still doesn't beat v1**, and real-speech accuracy barely
+moved (actually dropped slightly). A follow-up embedding-space analysis (comparing each
+In-the-Wild real clip's distance to the model's training-bonafide set) found the real
+mechanism: v2/v3's real-speech failures correlate strongly (Mann-Whitney p=1.6e-43) with
+how acoustically unfamiliar a clip is relative to training data -- regression rate roughly
+doubles between the most-familiar and most-novel deciles. garystafford only has 22 real
+source videos; leak-free splitting doesn't change that. The model learned a narrower,
+more closed-set notion of "real speech" than v1's had, and no amount of re-splitting the
+same 22 sources fixes that -- it would need genuinely more distinct real speakers, not
+more chunks of the same few.
+
+**`service/app.py` remains on WavLM v1.** v3 is kept for reference only. If real-speech
+generalization is revisited, the next lever is more distinct real speakers/sources, not
+more volume from the same ones.
+
 ## Known limitations / future work
 
 - **`num_workers > 0` stalls badly on macOS with the MPS device** -- DataLoader worker
