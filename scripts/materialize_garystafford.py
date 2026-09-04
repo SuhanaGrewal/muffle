@@ -19,11 +19,14 @@ OUT_ROOT = Path("data/raw/garystafford")
 
 
 def main() -> None:
+    # max_workers kept low -- HF's xet backend rate-limited (429) the default concurrency
+    # partway through a 1866-file download.
     local_dir = snapshot_download(
         repo_id="garystafford/deepfake-audio-detection",
         repo_type="dataset",
         allow_patterns=["fake/*", "real/*"],
         local_dir=OUT_ROOT,
+        max_workers=4,
     )
     n_fake = sum(1 for _ in (OUT_ROOT / "fake").glob("*.flac"))
     n_real = sum(1 for _ in (OUT_ROOT / "real").glob("*.flac"))
