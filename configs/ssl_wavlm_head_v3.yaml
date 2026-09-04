@@ -1,0 +1,30 @@
+model_name: ssl_wavlm_head_v3
+model_type: ssl_head
+
+data:
+  # Same dataset-stratified subsampling approach as v2, but now on top of a
+  # leak-fixed garystafford manifest -- splits are assigned per SOURCE recording, not
+  # per file, so no source appears in more than one split (v2's garystafford dev slice
+  # was 98.4% leaked). See README for the full v1/v2/v3 comparison.
+  manifest_path: data/processed/combined_manifest_small.csv
+  sample_rate: 16000
+  duration_seconds: 4.0
+
+features:
+  ssl_model_name: microsoft/wavlm-base-plus
+
+model:
+  ssl_hidden_size: 768
+  mlp_hidden: 128
+  dropout: 0.1
+
+train:
+  batch_size: 8
+  num_workers: 0
+  epochs: 10
+  lr: 0.0003
+  weight_decay: 0.00001
+  class_weights: [1.0, 1.0]  # [bonafide, spoof]
+  device: auto
+  checkpoint_dir: checkpoints/ssl_wavlm_head_v3
+  seed: 0
