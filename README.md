@@ -216,6 +216,38 @@ ensembling isn't free, and blending in a component that isn't generalizing makes
 worse, not better. **`service/app.py` now defaults to serving WavLM alone**, not the
 ensemble, based on this result.
 
+### Data-diversity experiment (negative result, kept for honesty)
+
+WavLM's original training subsample (`combined_manifest_small.csv`) turned out to be
+86% ASVspoof2019 LA by row count -- `subsample_manifest` pooled all datasets' rows before
+capping, so ASVspoof2019 LA's much larger pool crowded out garystafford (6 modern TTS
+platforms, including 173 ElevenLabs clips) down to ~23 rows and DEEP-VOICE down to ~5,
+almost by chance. Two fixes: `scripts/materialize_garystafford.py` now preserves original
+filenames (previously renamed to sequential numbers, discarding which TTS platform made
+each clip), and `subsample_manifest` now stratifies by dataset too, so every source
+contributes everything it has up to the cap instead of being pooled against ASVspoof's
+volume. This gave WavLM v2 a ~2x larger, much more diverse training set (all 745
+garystafford train rows across 6 platforms, ~137 ElevenLabs specifically, vs. ~23 of any
+platform before).
+
+| Model | Cross-dataset EER (In-the-Wild) | In-domain eval EER |
+|---|---|---|
+| WavLM v1 (ASVspoof-dominated, ~23 garystafford rows) | **14.85%** | 12.75% |
+| WavLM v2 (dataset-stratified, ~745 garystafford rows) | 19.25% | 12.58% |
+
+**v2 is worse on the number that matters**, despite better in-domain and dev EER (8.83%).
+The generalization gap (in-domain -> cross-dataset) widened from +2.1 points (v1) to
++6.67 points (v2) -- the hallmark of overfitting, on a model that v1's numbers suggested
+wasn't prone to it. Best working explanation: giving the small trainable head more spoof
+examples, even diverse ones, from a still-closed set of 7 known generators let it fit
+more tightly to the union of "known fake" patterns, at some cost to the more abstract
+signal that happened to transfer well when there was less to specifically fit to. More
+training-data diversity did not automatically buy better generalization here.
+
+**`service/app.py` stays on WavLM v1** (`checkpoints/ssl_wavlm_head/`), not v2. The v2
+config/checkpoint (`configs/ssl_wavlm_head_v2.yaml`, `checkpoints/ssl_wavlm_head_v2/`)
+is kept for reference, not deployed.
+
 ## Known limitations / future work
 
 - **`num_workers > 0` stalls badly on macOS with the MPS device** -- DataLoader worker
