@@ -238,14 +238,24 @@ def combine_manifests(manifest_paths: list[Path]) -> pd.DataFrame:
 
 
 def subsample_manifest(df: pd.DataFrame, max_per_group: int, seed: int = 0) -> pd.DataFrame:
-    """Cap each (split, label) group at `max_per_group` rows via random sampling, so a
-    heavier model (e.g. frozen-SSL) can do a quick trial run in a fraction of the time --
-    at the cost of a noisier, less statistically robust result than the full dataset.
+    """Cap each (split, label, dataset) group at `max_per_group` rows via random sampling,
+    so a heavier model (e.g. frozen-SSL) can do a quick trial run in a fraction of the
+    time -- at the cost of a noisier, less statistically robust result than the full
+    dataset.
+
+    Grouping by dataset (not just split/label) matters: pooling across datasets before
+    capping lets a huge dataset (ASVspoof2019 LA's ~23k train spoof rows) crowd out a
+    small-but-diverse one (garystafford's ~750, spanning 6 different TTS platforms) down
+    to almost nothing by pure chance, even though both are capped at the same ceiling.
+    Stratifying by dataset means a source under the cap contributes everything it has.
     """
     # Iterate the groupby explicitly rather than .apply(): pandas 2.2+ excludes the
-    # grouping columns (split, label) from what .apply() passes to the callback by
-    # default, which silently dropped them here.
-    parts = [group.sample(n=min(len(group), max_per_group), random_state=seed) for _, group in df.groupby(["split", "label"])]
+    # grouping columns from what .apply() passes to the callback by default, which
+    # silently dropped them here.
+    parts = [
+        group.sample(n=min(len(group), max_per_group), random_state=seed)
+        for _, group in df.groupby(["split", "label", "dataset"])
+    ]
     return pd.concat(parts, ignore_index=True)
 
 
