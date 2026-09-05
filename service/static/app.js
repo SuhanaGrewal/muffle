@@ -149,9 +149,14 @@ async function sendForDetection(wavBlob, diag) {
 function renderResult(data, diag) {
   errorEl.classList.remove("visible");
   resultEl.classList.add("visible");
-  verdictEl.textContent = data.verdict === "human" ? "HUMAN" : "AI-GENERATED";
+
+  if (data.verdict === "no_speech_detected") {
+    verdictEl.textContent = "NO SPEECH DETECTED";
+  } else {
+    verdictEl.textContent = data.verdict === "human" ? "HUMAN" : "AI-GENERATED";
+  }
   verdictEl.className = "verdict " + data.verdict;
-  confidenceEl.textContent = `confidence ${(data.confidence * 100).toFixed(1)}%`;
+  confidenceEl.textContent = data.verdict === "no_speech_detected" ? "" : `confidence ${(data.confidence * 100).toFixed(1)}%`;
   modelVersionEl.textContent = data.model_version;
   latencyEl.textContent = `${data.processing_time_ms.toFixed(0)}ms`;
 
