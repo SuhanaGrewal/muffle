@@ -224,6 +224,65 @@ def build_garystafford_manifest(dataset_root: Path) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
 
 
+def build_mendeley_fake_audio_manifest(dataset_root: Path) -> pd.DataFrame:
+    """Fake Audio Dataset (ElevenLabs & Respeecher) -- Beltran & Ballesteros L (2025),
+    Mendeley Data, DOI 10.17632/79g59sp69z.1, CC BY 4.0. 600 synthetic clips (335
+    ElevenLabs, 265 Respeecher; TTS and voice-conversion), spoof-only -- no bonafide
+    counterpart, so this only adds attack-type diversity, not real-speaker diversity.
+
+    8 of 600 rows are metadata-labeled Age_group="menor" (Spanish: minor) -- excluded
+    here regardless of any actual audio content, since it costs ~1% of the data to drop
+    and removes any reason for concern in a public project.
+
+    Each clip is an independent full recording (not chunks of a shared source, unlike
+    garystafford), so a straightforward stratified split per (Tool, Type) is used --
+    no source-level leakage risk analogous to garystafford's was found in the metadata.
+    """
+    metadata_path = dataset_root / "metadata.xlsx"
+    if not metadata_path.exists():
+        raise FileNotFoundError(
+            f"Missing {metadata_path} -- download the dataset from "
+            "https://data.mendeley.com/datasets/79g59sp69z/1 and extract audio*.wav "
+            "files directly into this directory alongside metadata.xlsx."
+        )
+
+    meta = pd.read_excel(metadata_path, usecols=["Audio", "Tool", "Type", "Gender", "Age_group"])
+    meta = meta[meta["Age_group"] != "menor"]
+
+    def attack_id_for(row) -> str:
+        return f"{row['Tool'].lower()}_{row['Type'].lower()}"
+
+    def split_for(index: int) -> str:
+        if index % 10 == 0:
+            return "eval"
+        if index % 10 == 1:
+            return "dev"
+        return "train"
+
+    rows = []
+    for _, group in meta.groupby(["Tool", "Type"]):
+        group = group.reset_index(drop=True)
+        for i, meta_row in group.iterrows():
+            path = dataset_root / f"{meta_row['Audio']}.wav"
+            if not path.exists():
+                raise FileNotFoundError(f"Missing audio file: {path}")
+            rows.append(
+                {
+                    "path": str(path),
+                    "label": "spoof",
+                    "dataset": "mendeley_fake_audio",
+                    "attack_id": attack_id_for(meta_row),
+                    "speaker_id": None,
+                    "split": split_for(i),
+                }
+            )
+
+    manifest = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+    if manifest.empty:
+        raise ValueError(f"Parsed zero rows from {metadata_path}")
+    return manifest
+
+
 def build_in_the_wild_manifest(dataset_root: Path) -> pd.DataFrame:
     """In-the-Wild (Muller et al.) -- real-world deepfakes of public figures. Every row
     is split="eval": this dataset is never trained on, only used as a held-out
@@ -263,6 +322,7 @@ _BUILDERS = {
     "deep_voice": build_deep_voice_manifest,
     "garystafford": build_garystafford_manifest,
     "in_the_wild": build_in_the_wild_manifest,
+    "mendeley_fake_audio": build_mendeley_fake_audio_manifest,
 }
 
 
