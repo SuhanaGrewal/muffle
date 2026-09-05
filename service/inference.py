@@ -16,6 +16,15 @@ from muffle.data.datasets import _resample
 from muffle.factory import build_feature_extractor, build_model
 
 
+SILENCE_RMS_THRESHOLD = 0.01
+"""Below this RMS amplitude, treat the clip as silence/no-speech rather than force a
+human/ai_generated verdict. The model was only ever trained on labeled real/fake speech
+-- it has no "not speech" class, so silence still gets scored as confidently one or the
+other. A rough heuristic (typical speech RMS in this pipeline is ~0.10-0.12, see README);
+may need retuning against real-world quiet-room recordings.
+"""
+
+
 class InferenceEngine:
     """Owns one loaded model + extractor; construct once at app startup."""
 
@@ -45,6 +54,16 @@ class InferenceEngine:
             waveform = waveform.mean(axis=1)
         if file_sr != self.sample_rate:
             waveform = _resample(waveform, file_sr, self.sample_rate)
+
+        rms = float(np.sqrt(np.mean(waveform.astype(np.float64) ** 2)))
+        if rms < SILENCE_RMS_THRESHOLD:
+            return {
+                "verdict": "no_speech_detected",
+                "confidence": 1.0,
+                "score_raw": 0.0,
+                "model_version": self.model_version,
+                "processing_time_ms": (time.monotonic() - start) * 1000,
+            }
 
         window_len = int(self.sample_rate * self.window_seconds)
         n_windows = max(1, -(-len(waveform) // window_len))  # ceil division
