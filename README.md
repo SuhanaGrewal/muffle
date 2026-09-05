@@ -26,6 +26,7 @@ project's evaluation protocol is built around measuring that gap explicitly
 | DEEP-VOICE | Combined into training -- 8 American public figures, real audio vs. RVC voice-conversion fakes | Kaggle, freely downloadable |
 | garystafford/deepfake-audio-detection | Combined into training -- 933 real / 933 commercial-TTS fakes, materialized locally from HF streaming (see `scripts/materialize_garystafford.py`) | CC-BY-4.0 |
 | ASVspoof2019 LA | Combined into training -- adds volume and diversity (121k rows) but reintroduces British/VCTK-accented speakers into the training mix | Open Data Commons Attribution (free, no gate) |
+| Fake Audio Dataset (ElevenLabs & Respeecher) | Combined into training (WavLM v4 experiment) -- 592 contemporary TTS/voice-conversion clips, spoof-only. Beltran & Ballesteros L (2025), Mendeley Data, DOI [10.17632/79g59sp69z.1](https://doi.org/10.17632/79g59sp69z.1) | CC BY 4.0 |
 | ASVspoof2021 DF | Cross-dataset generalization test (codec-compressed, closer to phone audio) | Zenodo, free registration |
 | WaveFake | Cross-dataset generalization test (different vocoder family) | CC-BY-SA 4.0 |
 | In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | CC-BY-SA 4.0 -- commercial use OK with attribution + share-alike |
@@ -284,6 +285,37 @@ more chunks of the same few.
 **`service/app.py` remains on WavLM v1.** v3 is kept for reference only. If real-speech
 generalization is revisited, the next lever is more distinct real speakers/sources, not
 more volume from the same ones.
+
+### Follow-up: adding a fourth spoof source confirms the mechanism, doesn't fix it
+
+Added **Fake Audio Dataset (ElevenLabs & Respeecher)** (Beltran & Ballesteros L, 2025,
+Mendeley Data, DOI [10.17632/79g59sp69z.1](https://doi.org/10.17632/79g59sp69z.1),
+CC BY 4.0) -- 592 clips (600 minus 8 metadata-labeled `Age_group=minor`, excluded
+regardless of actual content), spanning ElevenLabs and Respeecher TTS/voice-conversion,
+contemporary generators absent from every prior source. Retrained as WavLM v4
+(`configs/ssl_wavlm_head_v4.yaml`, `checkpoints/ssl_wavlm_head_v4/`).
+
+| Model | Cross-dataset EER | In-domain EER | Real Acc | Fake Acc |
+|---|---|---|---|---|
+| v1 | **14.85%** | 12.75% | 85.60% | 84.61% |
+| v2 | 19.25% | 12.58% | 73.49% | 85.21% |
+| v3 (leak-fixed) | 18.44% | 12.95% | 70.46% | 87.36% |
+| v4 (+ mendeley) | 20.43% | **11.77%** | **63.08%** | **87.86%** |
+
+The trend across all four versions is unambiguous: real accuracy falls monotonically
+(85.6% -> 73.5% -> 70.5% -> 63.1%) while fake accuracy climbs monotonically (84.6% ->
+85.2% -> 87.4% -> 87.9%), tracking exactly how much *spoof-only* diversity each version
+added without any accompanying growth in real-speaker diversity. This is the closed-set
+memorization mechanism from Debug 5, now demonstrated more starkly: every fix so far
+enriched the fake side and left the real side static (still anchored to the same ~130
+named speakers across ASVspoof2019 LA and garystafford's 22 YouTube videos). The model
+keeps getting better at "does this match a known fake type" and correspondingly worse at
+"does this match a known real voice."
+
+**`service/app.py` remains on WavLM v1** -- v4 does not beat it. The clear implication for
+any future attempt: real-speaker diversity (e.g. LibriSpeech, Mozilla Common Voice --
+both large, permissively licensed, hundreds-to-thousands of distinct speakers) needs to
+grow *alongside* spoof diversity, not be left behind it, or this same pattern will repeat.
 
 ## Known limitations / future work
 
