@@ -283,6 +283,56 @@ def build_mendeley_fake_audio_manifest(dataset_root: Path) -> pd.DataFrame:
     return manifest
 
 
+def build_librispeech_manifest(dataset_root: Path) -> pd.DataFrame:
+    """LibriSpeech dev-clean (Panayotov et al.), real human speech read from public-domain
+    LibriVox audiobooks -- CC BY 4.0. Added specifically for real-SPEAKER diversity: every
+    prior real-audio source in this project (ASVspoof2019 LA's ~107 speakers, garystafford's
+    22 YouTube videos) stayed static while spoof-side diversity kept growing across v2-v4,
+    and each of those retrains made real-speech accuracy monotonically worse (see README).
+
+    Downloaded via torchaudio.datasets.LIBRISPEECH(root, url="dev-clean", download=True),
+    which extracts to dataset_root/LibriSpeech/dev-clean/<speaker>/<chapter>/<speaker>-
+    <chapter>-<utterance>.flac. Splits are assigned per SPEAKER (not per utterance), the
+    same lesson learned from garystafford's leakage bug -- applied from the start here.
+    """
+    audio_root = dataset_root / "LibriSpeech" / "dev-clean"
+    files = sorted(audio_root.glob("*/*/*.flac"))
+    if not files:
+        raise FileNotFoundError(
+            f"Expected {audio_root}/<speaker>/<chapter>/*.flac -- run "
+            "`from torchaudio.datasets import LIBRISPEECH; "
+            "LIBRISPEECH(root='data/raw/librispeech', url='dev-clean', download=True)` first."
+        )
+
+    speakers = sorted({f.parent.parent.name for f in files})
+    shuffled = speakers.copy()
+    random.Random(0).shuffle(shuffled)
+    speaker_to_split = {}
+    for i, speaker in enumerate(shuffled):
+        if i % 10 == 0:
+            speaker_to_split[speaker] = "eval"
+        elif i % 10 == 1:
+            speaker_to_split[speaker] = "dev"
+        else:
+            speaker_to_split[speaker] = "train"
+
+    rows = []
+    for path in files:
+        speaker_id = path.parent.parent.name
+        rows.append(
+            {
+                "path": str(path),
+                "label": "bonafide",
+                "dataset": "librispeech",
+                "attack_id": None,
+                "speaker_id": speaker_id,
+                "split": speaker_to_split[speaker_id],
+            }
+        )
+
+    return pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+
+
 def build_in_the_wild_manifest(dataset_root: Path) -> pd.DataFrame:
     """In-the-Wild (Muller et al.) -- real-world deepfakes of public figures. Every row
     is split="eval": this dataset is never trained on, only used as a held-out
@@ -323,6 +373,7 @@ _BUILDERS = {
     "garystafford": build_garystafford_manifest,
     "in_the_wild": build_in_the_wild_manifest,
     "mendeley_fake_audio": build_mendeley_fake_audio_manifest,
+    "librispeech": build_librispeech_manifest,
 }
 
 
