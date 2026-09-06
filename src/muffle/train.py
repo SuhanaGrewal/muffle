@@ -105,6 +105,19 @@ def evaluate_split(model, extractor, loader, device) -> float:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True, type=Path)
+    parser.add_argument(
+        "--init-checkpoint",
+        type=Path,
+        default=None,
+        help=(
+            "Warm-start from an existing checkpoint's weights instead of a random head "
+            "init. For a small, targeted data addition (e.g. one new spoof generator), "
+            "this builds on a known-good model instead of re-fitting the whole head from "
+            "scratch on a reshuffled dataset mix -- which is what caused v2-v5's "
+            "regressions (see README): each full retrain let the small head re-anchor to "
+            "whatever shortcut its new mix offered, discarding what v1 had already learned."
+        ),
+    )
     args = parser.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -119,6 +132,10 @@ def main() -> None:
     if hasattr(extractor, "to"):
         extractor = extractor.to(device)
     model = build_model(cfg).to(device)
+    if args.init_checkpoint is not None:
+        checkpoint = torch.load(args.init_checkpoint, map_location=device)
+        model.load_state_dict(checkpoint["model_state"])
+        print(f"Warm-started model weights from {args.init_checkpoint}")
 
     class_weights = torch.tensor(cfg["train"]["class_weights"], dtype=torch.float32, device=device)
     criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
