@@ -34,6 +34,7 @@ def build_dataloaders(cfg: dict) -> tuple[DataLoader, DataLoader]:
         sample_rate=data_cfg["sample_rate"],
         duration_seconds=data_cfg["duration_seconds"],
         split="train",
+        augment=data_cfg.get("use_rawboost", False),
     )
     dev_ds = AudioManifestDataset(
         data_cfg["manifest_path"],
