@@ -1,0 +1,32 @@
+model_name: ssl_wavlm_head_v5
+model_type: ssl_head
+
+data:
+  # v4 + LibriSpeech dev-clean (40 speakers, speaker-disjoint splits, CC BY 4.0) added
+  # specifically for real-speaker diversity. Every prior version (v2-v4) grew spoof-side
+  # diversity while real-side diversity stayed static, and real-speech accuracy fell
+  # monotonically as a result (85.6% -> 73.5% -> 70.5% -> 63.1%, see README). This is the
+  # first version where real (2231) and spoof (2023) train rows are both backed by 4
+  # genuinely diverse sources instead of real staying frozen at 2-3.
+  manifest_path: data/processed/combined_manifest_small.csv
+  sample_rate: 16000
+  duration_seconds: 4.0
+
+features:
+  ssl_model_name: microsoft/wavlm-base-plus
+
+model:
+  ssl_hidden_size: 768
+  mlp_hidden: 128
+  dropout: 0.1
+
+train:
+  batch_size: 8
+  num_workers: 0
+  epochs: 10
+  lr: 0.0003
+  weight_decay: 0.00001
+  class_weights: [1.0, 1.0]  # [bonafide, spoof]
+  device: auto
+  checkpoint_dir: checkpoints/ssl_wavlm_head_v5
+  seed: 0
