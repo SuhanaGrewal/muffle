@@ -27,6 +27,7 @@ project's evaluation protocol is built around measuring that gap explicitly
 | garystafford/deepfake-audio-detection | Combined into training -- 933 real / 933 commercial-TTS fakes, materialized locally from HF streaming (see `scripts/materialize_garystafford.py`) | CC-BY-4.0 |
 | ASVspoof2019 LA | Combined into training -- adds volume and diversity (121k rows) but reintroduces British/VCTK-accented speakers into the training mix | Open Data Commons Attribution (free, no gate) |
 | Fake Audio Dataset (ElevenLabs & Respeecher) | Combined into training (WavLM v4 experiment) -- 592 contemporary TTS/voice-conversion clips, spoof-only. Beltran & Ballesteros L (2025), Mendeley Data, DOI [10.17632/79g59sp69z.1](https://doi.org/10.17632/79g59sp69z.1) | CC BY 4.0 |
+| LibriSpeech dev-clean | Combined into training (WavLM v5 experiment) -- 2,703 real speech clips, 40 speakers, bonafide-only. Panayotov et al., materialized via HuggingFace's `openslr/librispeech_asr` mirror | CC BY 4.0 |
 | ASVspoof2021 DF | Cross-dataset generalization test (codec-compressed, closer to phone audio) | Zenodo, free registration |
 | WaveFake | Cross-dataset generalization test (different vocoder family) | CC-BY-SA 4.0 |
 | In-the-Wild | Held-out benchmark only, never trained on (real-world deepfakes) | CC-BY-SA 4.0 -- commercial use OK with attribution + share-alike |
@@ -316,6 +317,48 @@ keeps getting better at "does this match a known fake type" and correspondingly 
 any future attempt: real-speaker diversity (e.g. LibriSpeech, Mozilla Common Voice --
 both large, permissively licensed, hundreds-to-thousands of distinct speakers) needs to
 grow *alongside* spoof diversity, not be left behind it, or this same pattern will repeat.
+
+### Follow-up: adding real-speaker diversity fixes real accuracy, breaks fake detection
+
+Added **LibriSpeech dev-clean** (Panayotov et al.), 40 speakers, speaker-disjoint splits
+assigned from the start (the garystafford leakage lesson applied proactively this time),
+CC BY 4.0. Downloaded via HuggingFace's mirror (`scripts/materialize_librispeech.py`) --
+the official OpenSLR direct download ran at ~30-60kB/s and was impractically slow.
+Retrained as WavLM v5 (`configs/ssl_wavlm_head_v5.yaml`), the first version where real
+(2,231 train rows) and fake (2,023) are both backed by 4 genuinely diverse sources
+instead of real staying frozen at 2-3.
+
+| Model | Cross-dataset EER | In-domain EER | Real Acc | Fake Acc |
+|---|---|---|---|---|
+| v1 | **14.85%** | 12.75% | 85.60% | 84.61% |
+| v2 | 19.25% | 12.58% | 73.49% | 85.21% |
+| v3 | 18.44% | 12.95% | 70.46% | 87.36% |
+| v4 | 20.43% | 11.77% | 63.08% | 87.86% |
+| v5 (+ LibriSpeech) | 22.72% | **9.72%** | **89.43%** | **61.75%** |
+
+The intended fix worked, dramatically, in one dimension: real accuracy jumped to 89.43%
+-- better than v1's own 85.60%, reversing the monotonic decline tracked across v2-v4.
+But fake accuracy collapsed to 61.75%, the worst of any version, making v5's overall
+cross-dataset EER the worst of all five attempts. Best working explanation: LibriSpeech
+is uniformly pristine studio-quality audiobook narration, acoustically homogeneous in a
+new way none of the other real sources are. The model likely learned a new shortcut --
+"very clean audio -> probably real" -- which happens to match In-the-Wild's real clips
+well, but backfires against clean-sounding fakes, since modern TTS output is often very
+clean too. Same underlying failure mode as the format-shortcut hypothesis (Debug 3) and
+closed-set memorization (Debug 5), in a new guise: every new data source brings its own
+incidental fingerprint (sample rate, bit depth, or now recording cleanliness) that this
+small trainable head can seize on instead of learning genuinely general synthesis cues.
+
+**`service/app.py` remains on WavLM v1** -- v5 is the worst overall of the five versions
+despite the best real-accuracy and best in-domain numbers. This is the clearest
+illustration yet that the underlying problem isn't any single fixable data gap -- it's
+that a small attentive-pooling+MLP head trained on this much data keeps finding *some*
+spurious shortcut instead of the intended general signal, and each new fix just changes
+which shortcut it finds. Escaping this durably likely needs either much more training
+data across many acoustically-varied real and fake sources simultaneously (not one
+source at a time), or a fundamentally different mitigation (heavier regularization,
+data augmentation to strip incidental recording-condition cues, or fine-tuning more of
+the backbone) -- none of which this project has tried yet.
 
 ## Known limitations / future work
 
