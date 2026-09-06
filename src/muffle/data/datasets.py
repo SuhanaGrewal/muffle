@@ -10,6 +10,8 @@ import soundfile as sf
 import torch
 from torch.utils.data import Dataset
 
+from muffle.augment import rawboost_augment
+
 LABEL_TO_INT = {"bonafide": 0, "spoof": 1}
 
 
@@ -36,12 +38,16 @@ class AudioManifestDataset(Dataset):
         sample_rate: int = 16_000,
         duration_seconds: float = 4.0,
         split: str | None = None,
+        augment: bool = False,
     ):
         self.manifest = pd.read_csv(manifest_path)
         if split is not None:
             self.manifest = self.manifest[self.manifest["split"] == split].reset_index(drop=True)
         self.sample_rate = sample_rate
         self.target_len = int(sample_rate * duration_seconds)
+        # RawBoost-style augmentation -- train split only (never dev/eval, which must
+        # stay a clean, unperturbed measurement of the model's actual behavior).
+        self.augment = augment
 
     def __len__(self) -> int:
         return len(self.manifest)
@@ -73,6 +79,9 @@ class AudioManifestDataset(Dataset):
             waveform = _resample(waveform, file_sr, self.sample_rate)
 
         waveform = _pad_or_trim(waveform, self.target_len)
+
+        if self.augment:
+            waveform = rawboost_augment(waveform)
 
         return {
             "waveform": torch.from_numpy(waveform.copy()),
