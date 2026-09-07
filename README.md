@@ -360,6 +360,40 @@ source at a time), or a fundamentally different mitigation (heavier regularizati
 data augmentation to strip incidental recording-condition cues, or fine-tuning more of
 the backbone) -- none of which this project has tried yet.
 
+### Follow-up: literature research, RawBoost augmentation, and a self-inflicted dilution bug
+
+Research (via a spawned agent) into how real anti-spoofing systems achieve strong
+cross-dataset generalization found this project's exact failure mode independently
+documented in very recent literature (arxiv 2603.18657): multi-corpus SSL anti-spoofing
+models cluster by dataset identity in embedding space rather than learning a shared
+synthesis-detection signal -- precisely Debug 5's finding, confirmed as a known,
+named phenomenon rather than something specific to this setup. Two cheap, cited fixes
+identified: **RawBoost** raw-waveform augmentation (`src/muffle/augment.py` --
+convolutive/impulsive/stationary noise applied during training only), reported to cut
+cross-condition EER 9.50%->5.31% on RawNet2/ASVspoof2021 LA (arxiv 2111.04433); and using
+much more of the already-downloaded ASVspoof2019 LA data (every run through v5 capped it
+at 800/group despite ~25k rows being available).
+
+WavLM v6 combined both -- and introduced a new, avoidable bug: growing ASVspoof volume
+(800->3000 spoof rows, all 2019-era attack types) without growing modern-generator volume
+alongside it diluted garystafford+mendeley (ElevenLabs, Respeecher, and 4 other
+contemporary platforms) from ~58% down to ~28% of the spoof training mix.
+
+| Model | Cross-dataset EER | In-domain EER | Real Acc | Fake Acc |
+|---|---|---|---|---|
+| v1 | **14.85%** | 12.75% | 85.60% | 84.61% |
+| v6 (+RawBoost, +ASVspoof volume) | 21.68% | 8.50% | 90.32% | **59.90%** |
+
+Real accuracy improved further (RawBoost + volume helped there) but fake detection
+collapsed to 59.90%, close to chance -- a direct, predictable consequence of diluting the
+one thing this detector most needs exposure to (modern, high-quality generators) in favor
+of volume from a six-year-old academic benchmark. **WavLM v7** fixes this by oversampling
+garystafford+mendeley spoof rows 3x in training (1,169->3,507), restoring their share to
+~53% while keeping RawBoost and the higher ASVspoof volume. Result pending -- see the next
+section once training completes.
+
+**`service/app.py` remains on WavLM v1** pending v7's validation.
+
 ## Known limitations / future work
 
 - **`num_workers > 0` stalls badly on macOS with the MPS device** -- DataLoader worker
