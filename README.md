@@ -387,12 +387,34 @@ contemporary platforms) from ~58% down to ~28% of the spoof training mix.
 Real accuracy improved further (RawBoost + volume helped there) but fake detection
 collapsed to 59.90%, close to chance -- a direct, predictable consequence of diluting the
 one thing this detector most needs exposure to (modern, high-quality generators) in favor
-of volume from a six-year-old academic benchmark. **WavLM v7** fixes this by oversampling
-garystafford+mendeley spoof rows 3x in training (1,169->3,507), restoring their share to
-~53% while keeping RawBoost and the higher ASVspoof volume. Result pending -- see the next
-section once training completes.
+of volume from a six-year-old academic benchmark.
 
-**`service/app.py` remains on WavLM v1** pending v7's validation.
+**WavLM v7** attempted the obvious fix: oversample garystafford+mendeley spoof rows 3x in
+training (1,169->3,507), restoring their share of the spoof mix to ~53%.
+
+| Model | Cross-dataset EER | Real Acc | Fake Acc |
+|---|---|---|---|
+| v1 | **14.85%** | 85.60% | 84.61% |
+| v6 (diluted modern generators) | 21.68% | 90.32% | 59.90% |
+| v7 (oversampled modern generators 3x) | **23.93%** (worst of all seven) | 88.89% | 58.59% |
+
+**The fix didn't work -- fake detection got marginally worse, not better.** Oversampling
+doesn't add information: it's still the same 1,169 unique modern-generator recordings,
+shown more often with different RawBoost noise applied each time. RawBoost varies surface
+channel characteristics, not underlying content, so this likely pushed the model to
+overfit harder to those specific 1,169 clips' idiosyncrasies rather than learn something
+that generalizes to modern TTS more broadly.
+
+**Conclusion, now confirmed two different ways (dilution and oversampling both failed):**
+the bottleneck is genuinely the *volume of unique* modern-generator examples (1,169
+total across ElevenLabs, Respeecher, and 4 other platforms), not their weighting in the
+training mix. No amount of resampling that same fixed pool fixes a problem that requires
+more distinct real-world examples. Closing this gap for real would need meaningfully more
+unique modern-generator audio -- hundreds to a thousand+ new clips spanning many platforms
+and voices, not duplicates of what's already here, and not one narrowly-sourced voice
+(which would just be a smaller-scale version of the same overfitting problem).
+
+**`service/app.py` remains on WavLM v1.** Nothing from v2 through v7 has beaten it.
 
 ## Known limitations / future work
 
